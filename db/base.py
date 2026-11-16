@@ -12,7 +12,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///itemized_statements.db")
 
 engine = create_engine(  
     DATABASE_URL,  
-    echo=True,        # flip to True while developing to see the SQL  
+    echo=False,        # flip to True while developing to see the SQL  
     pool_pre_ping=True # reconnects dead pooled connections (important for long RPA runs)  
 )
 
