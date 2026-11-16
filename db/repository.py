@@ -78,7 +78,7 @@ def close_stale_runs(session, max_age_hours: int = 12) -> int:
 
 # ---------- Input loading ----------
 
-def register_input_file(session, csv_path: str | Path, loading_run_id: str) -> int:  
+def register_input_file(session, csv_path: str | Path, run_id: str) -> int:  
     """Insert the file's rows into `inputs`. Skips invoices already recorded  
     for this file name, so re-running a file is a no-op here."""  
     csv_path = Path(csv_path)  
@@ -98,7 +98,7 @@ def register_input_file(session, csv_path: str | Path, loading_run_id: str) -> i
                 "invoice_number": invoice,  
                 "group_number": (row.get("ZZACPAANSGROUP") or "").strip() or None,  
                 "row_number": i,  
-                "loaded_by_run_id": loading_run_id,  
+                "run_id": run_id,  
             })
 
     if rows:  
