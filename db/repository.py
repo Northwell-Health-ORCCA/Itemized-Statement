@@ -1,5 +1,5 @@
 import csv  
-from datetime import datetime  
+from datetime import datetime, timedelta  
 from pathlib import Path  
 from typing import NamedTuple
 
@@ -31,15 +31,10 @@ def make_run_id(session, when: datetime | None = None) -> str:
 
 
 def create_run(session, file_name: str) -> Run:  
-    """New run against a file. run_number increments per file."""  
-    next_num = (session.scalar(  
-        select(func.max(Run.run_id)).where(Run.file_name == file_name)  
-    ) or 0) + 1
-
+    """New run against a file."""  
     run = Run(  
         run_id=make_run_id(session),  
         file_name=file_name,  
-        run_number=next_num,  
         status=RunStatus.LOADED,  
     )  
     session.add(run)  
@@ -67,6 +62,19 @@ def complete_run(session, run_id: str, failure_reason: str | None = None) -> Run
     session.flush()  
     return run
 
+def close_stale_runs(session, max_age_hours: int = 12) -> int:  
+    cutoff = now() - timedelta(hours=max_age_hours)  
+    stale = session.scalars(  
+        select(Run).where(  
+            Run.status == RunStatus.IN_PROCESS,  
+            Run.start_time < cutoff,  
+        )  
+    ).all()  
+    for run in stale:  
+        run.status = RunStatus.FAILED  
+        run.end_time = now()  
+        run.failure_reason = "Abandoned — no completion recorded (process killed?)"  
+    return len(stale)  
 
 # ---------- Input loading ----------
 
