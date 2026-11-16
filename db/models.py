@@ -10,8 +10,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import Base
 
 
-def utcnow() -> datetime:  
-    return datetime.now(timezone.utc)
+def now() -> datetime:  
+    """Naive local time. Matches the YYYYMMDD_HHMMSS run_id format, so a run  
+    named 20261116_091500 has start_time 09:15:00 — not 14:15 UTC."""  
+    return datetime.now()
 
 
 def new_uuid() -> str:  
@@ -54,7 +56,7 @@ class Run(Base):
     failure_reason: Mapped[str | None] = mapped_column(Text)
 
     total_records: Mapped[int] = mapped_column(Integer, default=0)  
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
     inputs: Mapped[list["Input"]] = relationship(back_populates="run")  
     attempts: Mapped[list["Attempt"]] = relationship(back_populates="run")
@@ -75,7 +77,7 @@ class Input(Base):
     invoice_number: Mapped[str] = mapped_column(String(50), nullable=False, index=True)  
     group_number: Mapped[str | None] = mapped_column(String(50))  
     row_number: Mapped[int | None] = mapped_column(Integer)  # line in the CSV  
-    loaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    loaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
     run: Mapped["Run"] = relationship(back_populates="inputs")
 
@@ -89,7 +91,7 @@ class Output(Base):
     # Provenance — set once, never updated  
     first_file_name: Mapped[str] = mapped_column(String(255), nullable=False)  
     first_run_id: Mapped[str] = mapped_column(String(36), ForeignKey("runs.run_id"))  
-    first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
     # Most recent attempt — overwritten each time  
     status: Mapped[ItemStatus | None] = mapped_column(  
@@ -108,7 +110,7 @@ class Output(Base):
 
     attempt_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)  
     updated_at: Mapped[datetime] = mapped_column(  
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow  
+        DateTime(timezone=True), default=now, onupdate=now  
     )
 
     attempts: Mapped[list["Attempt"]] = relationship(  
@@ -145,7 +147,7 @@ class Attempt(Base):
     exception_reason: Mapped[str | None] = mapped_column(Text)
     start_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  
     end_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
     output: Mapped["Output"] = relationship(back_populates="attempts")  
     run: Mapped["Run"] = relationship(back_populates="attempts")
