@@ -25,14 +25,14 @@ def main(csv_path: str, retry_failed_only: bool = False) -> None:
 
     # ── Transaction 1: create the run, load inputs ──────────────  
     with session_scope() as session:  
-        run = create_run(session, file_name)          # status = loaded  
+        run = create_run(session, file_name) #! sets status = loaded  
         run_id = run.run_id  
         loaded = register_input_file(session, csv_path, run_id)  
         print(f"Run {run_id} (#{run.run_id} on {file_name}), {loaded} new rows")
 
     # ── Transaction 2: flip to in_process, grab the work list ───  
     with session_scope() as session:  
-        start_run(session, run_id)                    # ← HERE  
+        start_run(session, run_id) #! sets status = in_process
         work = get_work_items(session, run_id, retry_failed_only=retry_failed_only)  
         run = session.get(Run, run_id)
         if not run:
