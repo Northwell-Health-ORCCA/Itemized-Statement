@@ -49,7 +49,7 @@ class LoginPage:
         login_button.click()
 
         try:
-            error = WebDriverWait(self.driver, 10).until(
+            error = WebDriverWait(self.driver, 5).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR,"p.alert-block.error"))
             )
             error_text = error.text
@@ -72,6 +72,16 @@ class LoginPage:
             return False
 
     def login(self, username: Optional[str] = None, password: Optional[str] = None) -> bool:
+        """
+        Attempt to log in with the provided username and password.
+
+        Args:
+            username: Optional username to use for login. Defaults to environment variable.
+            password: Optional password to use for login. Defaults to environment variable.
+
+        Returns:
+            True if login is successful, False otherwise.
+        """
         if not self._attempt_login(username, password):
             return False
         return self._confirm_login()
