@@ -74,11 +74,12 @@ def main(csv_path: str, retry_failed_only: bool = False) -> None:
                                exception_type=exception_type,
                                exception_reason=exception_reason)
 
-    except BaseException as e:  
+    except Exception as e:  
+        # error happens outside of individual invoice processing and is likely not linked to a specific invoice
         fatal = f"{type(e).__name__}: {e}"  
         raise  
     finally:  
-        # ── Final transaction: always close the run ─────────────  
+        # Close the run after processing all invoices
         with session_scope() as session:  
             complete_run(session, run_id, failure_reason=fatal) 
             print(run_summary(session, run_id))  
