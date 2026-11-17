@@ -25,7 +25,7 @@ def main(file_date: str, retry_failed_only: bool = False) -> None:
         raise ValueError("file_date must be in YYYYMMDD format")
     
     file_name = f'{file_date}_PAANS_BOT_v2.csv'
-    file_path = f'//NASDATA201/SHAREDATA/MV-RCR01/SHARED/RC Experience/DO NOT REMOVE - HCx Ontario Reports/{file_name}'
+    file_path = f'//NASDATA201/SHAREDATA/MV-RCR01/SHARED/RC Experience/DO NOT REMOVE - HCx Ontario Reports'
     csv_path = os.path.join(file_path, file_name)
 
     # ── Transaction 1: create the run, load inputs ──────────────  
@@ -39,12 +39,15 @@ def main(file_date: str, retry_failed_only: bool = False) -> None:
     with session_scope() as session:  
         start_run(session, run_id) #! sets status = in_process
         work = get_work_items(session, run_id, retry_failed_only=retry_failed_only)  
+        if not work:
+            raise BusinessException(f'No accounts to work for run {run_id}')
+        
         run = session.get(Run, run_id)
         if not run:
             raise ApplicationException(f"Run {run_id} not found")
         run.total_records = len(work)
 
-    # ── Transactions: one per invoice ──────────────────────  
+    # ── Transactions ──────────────────────  
     fatal = None  
     try:  
         for item in work:  
