@@ -2,6 +2,7 @@ from pathlib import Path
 from glob import glob
 from tqdm import tqdm
 from datetime import datetime
+import os
 
 from db.base import session_scope  
 from db.models import ExceptionType, ItemStatus, Run, RunStatus, now  
@@ -13,8 +14,19 @@ from db.exceptions import BusinessException, ApplicationException
 from workflow import process_invoice
 
 
-def main(csv_path: str, retry_failed_only: bool = False) -> None:  
-    file_name = Path(csv_path).name
+def main(file_date: str, retry_failed_only: bool = False) -> None:  
+    # check that file_date is in YYYYMMDD format
+    if not file_date.isdigit() or len(file_date) != 8:
+        raise ValueError("file_date must be in YYYYMMDD format")
+    
+    try:
+        datetime.strptime(file_date, "%Y%m%d")
+    except ValueError:
+        raise ValueError("file_date must be in YYYYMMDD format")
+    
+    file_name = f'{file_date}_PAANS_BOT_v2.csv'
+    file_path = f'//NASDATA201/SHAREDATA/MV-RCR01/SHARED/RC Experience/DO NOT REMOVE - HCx Ontario Reports/{file_name}'
+    csv_path = os.path.join(file_path, file_name)
 
     # ── Transaction 1: create the run, load inputs ──────────────  
     with session_scope() as session:  
@@ -82,9 +94,5 @@ def main(csv_path: str, retry_failed_only: bool = False) -> None:
             print(run_summary(session, run_id))  
             
 if __name__ == "__main__":
-    file_path = '//NASDATA201/SHAREDATA/MV-RCR01/SHARED/RC Experience/DO NOT REMOVE - HCx Ontario Reports'
     today = datetime.today().strftime('%Y%m%d')
-    
-    file_name = f'{today}_PAANS_BOT_v2.csv'
-    csv_path = f'{file_path}/{file_name}'
-    main(csv_path)
+    main(today)
