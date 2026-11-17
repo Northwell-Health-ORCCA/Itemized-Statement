@@ -1,4 +1,8 @@
 from pathlib import Path
+from glob import glob
+from tqdm import tqdm
+from datetime import datetime
+import os
 
 from db.base import session_scope  
 from db.models import ExceptionType, ItemStatus, Run, RunStatus, now  
@@ -6,22 +10,23 @@ from db.repository import (
     complete_run, create_run, get_work_items, record_attempt, register_input_file, reconcile, run_summary, start_run  
 )
 
-
-class BusinessException(Exception):  
-    """Expected, data-driven failure — e.g. invoice already posted."""
-    pass
-
-class ApplicationException(Exception):
-    """Unexpected, system-driven failure — e.g. database connection error."""
-    pass
-
-def process_invoice(invoice_number: str, group_number: str | None) -> None:  
-    """Your actual automation goes here."""  
-    pass
+from db.exceptions import BusinessException, ApplicationException
+from workflow import process_invoice
 
 
-def main(csv_path: str, retry_failed_only: bool = False) -> None:  
-    file_name = Path(csv_path).name
+def main(file_date: str, retry_failed_only: bool = False) -> None:  
+    # check that file_date is in YYYYMMDD format
+    if not file_date.isdigit() or len(file_date) != 8:
+        raise ValueError("file_date must be in YYYYMMDD format")
+    
+    try:
+        datetime.strptime(file_date, "%Y%m%d")
+    except ValueError:
+        raise ValueError("file_date must be in YYYYMMDD format")
+    
+    file_name = f'{file_date}_PAANS_BOT_v2.csv'
+    file_path = f'//NASDATA201/SHAREDATA/MV-RCR01/SHARED/RC Experience/DO NOT REMOVE - HCx Ontario Reports'
+    csv_path = os.path.join(file_path, file_name)
 
     # ── Transaction 1: create the run, load inputs ──────────────  
     with session_scope() as session:  
@@ -34,29 +39,41 @@ def main(csv_path: str, retry_failed_only: bool = False) -> None:
     with session_scope() as session:  
         start_run(session, run_id) #! sets status = in_process
         work = get_work_items(session, run_id, retry_failed_only=retry_failed_only)  
+        if not work:
+            raise BusinessException(f'No accounts to work for run {run_id}')
+        
         run = session.get(Run, run_id)
         if not run:
             raise ApplicationException(f"Run {run_id} not found")
         run.total_records = len(work)
 
-    # ── Transactions: one per invoice ──────────────────────  
+    # ── Transactions ──────────────────────  
     fatal = None  
     try:  
         for item in work:  
-            started = now()  
-            end_time = now()
-            status: ItemStatus = ItemStatus.SUCCESS
-            exception_type: ExceptionType | None = None
-            exception_reason: str | None = None
+            started = now() 
+            
             try:  
-                process_invoice(item.invoice_number, item.group_number)  
-            except BusinessException as e:  
+                process_invoice(item.invoice_number, item.group_number)
+            
+                end_time = now()
+                status: ItemStatus = ItemStatus.SUCCESS
+                exception_type: ExceptionType | None = None
+                exception_reason: str | None = None
+            except BusinessException as e:
+                end_time = now()
                 status = ItemStatus.FAILED
                 exception_type = ExceptionType.BUSINESS
                 exception_reason = str(e)[:4000]  
-            except Exception as e:  
+            except ApplicationException as e:  
+                end_time = now()
                 status = ItemStatus.FAILED
                 exception_type = ExceptionType.APPLICATION
+                exception_reason = f"{type(e).__name__}: {e}"[:4000]
+            except Exception as e:
+                end_time = now()
+                status = ItemStatus.FAILED
+                exception_type = ExceptionType.PYTHON
                 exception_reason = f"{type(e).__name__}: {e}"[:4000]
 
             with session_scope() as session:  
@@ -69,11 +86,16 @@ def main(csv_path: str, retry_failed_only: bool = False) -> None:
                                exception_type=exception_type,
                                exception_reason=exception_reason)
 
-    except BaseException as e:  
+    except Exception as e:  
+        # error happens outside of individual invoice processing and is likely not linked to a specific invoice
         fatal = f"{type(e).__name__}: {e}"  
         raise  
     finally:  
-        # ── Final transaction: always close the run ─────────────  
+        # Close the run after processing all invoices
         with session_scope() as session:  
             complete_run(session, run_id, failure_reason=fatal) 
             print(run_summary(session, run_id))  
+            
+if __name__ == "__main__":
+    today = datetime.today().strftime('%Y%m%d')
+    main(today)

@@ -37,6 +37,7 @@ class ItemStatus(str, enum.Enum):
 class ExceptionType(str, enum.Enum):  
     BUSINESS = "business exception"  
     APPLICATION = "application exception"
+    PYTHON = "python exception"
 
 
 # ---------- Tables ----------

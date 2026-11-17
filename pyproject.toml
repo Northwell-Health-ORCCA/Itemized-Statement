@@ -10,6 +10,7 @@ dependencies = [
     "pytest>=9.2.0",
     "python-dotenv>=1.2.4",
     "sqlalchemy>=2.1.8",
+    "tqdm>=4.70.1",
 ]
 
 [dependency-groups]
