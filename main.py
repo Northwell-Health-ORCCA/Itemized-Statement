@@ -9,6 +9,7 @@ from db.repository import (
     complete_run, create_run, get_work_items, record_attempt, register_input_file, reconcile, run_summary, start_run  
 )
 
+from db.exceptions import BusinessException, ApplicationException
 
 def process_invoice(invoice_number: str, group_number: str | None) -> None:  
     """Your actual automation goes here."""  
@@ -57,10 +58,10 @@ def main(csv_path: str, retry_failed_only: bool = False) -> None:
                 status = ItemStatus.FAILED
                 exception_type = ExceptionType.APPLICATION
                 exception_reason = f"{type(e).__name__}: {e}"[:4000]
-            except BaseException as e:
+            except Exception as e:
                 end_time = now()
                 status = ItemStatus.FAILED
-                exception_type = ExceptionType.SYSTEM
+                exception_type = ExceptionType.PYTHON
                 exception_reason = f"{type(e).__name__}: {e}"[:4000]
 
             with session_scope() as session:  
