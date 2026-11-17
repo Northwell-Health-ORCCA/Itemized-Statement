@@ -20,8 +20,7 @@ Itemized-Statement/
 ├── db/  
 │   ├── __init__.py  
 │   ├── base.py          # engine, session factory, session_scope()  
-│   ├── exceptions.py    # exception definitions 
-│   ├── create_db.py     # one-time table creation  
+│   ├── exceptions.py    # exception definitions  
 │   ├── models.py        # table definitions, enums, now()  
 │   └── repository.py    # all DB operations the bot calls  
 ├── tests/  
@@ -32,6 +31,7 @@ Itemized-Statement/
 │   ├── test_attempts.py  
 │   ├── test_integrity.py  
 │   └── test_main.py  
+├── create_db.py         # one-time table creation 
 ├── workflow.py          # process_invoice()
 ├── main.py              # orchestration / entry point  
 └── pyproject.toml       # pytest config 
@@ -53,7 +53,7 @@ export DATABASE_URL="mssql+pyodbc://user:pass@server/dbname?driver=ODBC+Driver+1
 Create the tables:
 
 ```bash  
-python -m db/create_db.py  
+python create_db.py
 ```
 
 Run alembic upgrade
