@@ -1,4 +1,7 @@
 from pathlib import Path
+from glob import glob
+from tqdm import tqdm
+from datetime import datetime
 
 from db.base import session_scope  
 from db.models import ExceptionType, ItemStatus, Run, RunStatus, now  
@@ -6,14 +9,6 @@ from db.repository import (
     complete_run, create_run, get_work_items, record_attempt, register_input_file, reconcile, run_summary, start_run  
 )
 
-
-class BusinessException(Exception):  
-    """Expected, data-driven failure — e.g. invoice already posted."""
-    pass
-
-class ApplicationException(Exception):
-    """Unexpected, system-driven failure — e.g. database connection error."""
-    pass
 
 def process_invoice(invoice_number: str, group_number: str | None) -> None:  
     """Your actual automation goes here."""  
@@ -43,20 +38,29 @@ def main(csv_path: str, retry_failed_only: bool = False) -> None:
     fatal = None  
     try:  
         for item in work:  
-            started = now()  
-            end_time = now()
-            status: ItemStatus = ItemStatus.SUCCESS
-            exception_type: ExceptionType | None = None
-            exception_reason: str | None = None
+            started = now() 
+            
             try:  
-                process_invoice(item.invoice_number, item.group_number)  
-            except BusinessException as e:  
+                process_invoice(item.invoice_number, item.group_number)
+            
+                end_time = now()
+                status: ItemStatus = ItemStatus.SUCCESS
+                exception_type: ExceptionType | None = None
+                exception_reason: str | None = None
+            except BusinessException as e:
+                end_time = now()
                 status = ItemStatus.FAILED
                 exception_type = ExceptionType.BUSINESS
                 exception_reason = str(e)[:4000]  
-            except Exception as e:  
+            except ApplicationException as e:  
+                end_time = now()
                 status = ItemStatus.FAILED
                 exception_type = ExceptionType.APPLICATION
+                exception_reason = f"{type(e).__name__}: {e}"[:4000]
+            except BaseException as e:
+                end_time = now()
+                status = ItemStatus.FAILED
+                exception_type = ExceptionType.SYSTEM
                 exception_reason = f"{type(e).__name__}: {e}"[:4000]
 
             with session_scope() as session:  
@@ -77,3 +81,11 @@ def main(csv_path: str, retry_failed_only: bool = False) -> None:
         with session_scope() as session:  
             complete_run(session, run_id, failure_reason=fatal) 
             print(run_summary(session, run_id))  
+            
+if __name__ == "__main__":
+    file_path = '//NASDATA201/SHAREDATA/MV-RCR01/SHARED/RC Experience/DO NOT REMOVE - HCx Ontario Reports'
+    today = datetime.today().strftime('%Y%m%d')
+    
+    file_name = f'{today}_PAANS_BOT_v2.csv'
+    csv_path = f'{file_path}/{file_name}'
+    main(csv_path)
