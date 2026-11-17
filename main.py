@@ -20,6 +20,8 @@ from pathlib import Path
 import time
 
 from pages.login_page import LoginPage
+from pages.open_settings import SettingsPage
+from pages.open_vtb import VTBPage
 
 from utils.chrome_driver import ChromeDriverFactory
 
@@ -86,25 +88,38 @@ def create_chrome_driver() -> webdriver.Chrome:
     
     return webdriver.Chrome(options=options)
 
-def login_to_idx() -> None:
-    driver = create_chrome_driver()
+# Login
+def login_to_idx(driver) -> None:
     login_page = LoginPage(driver)
-    # login_page.navigate_to_login()
-    # user = os.environ['IDX_USERNAME']
+    # username = os.environ['IDX_USERNAME']
     # password = os.environ['IDX_PASSWORD']
     try:
-        if not login_page.login(): 
+        if not login_page.login(): # can specify 'username' and 'password' here if needed
             raise ValueError("Login failed")
     except Exception as e:
         logger.error(f"Login failed: {e}")
         raise ValueError("Login failed")
 
-def clear_and_send_keys(element, text):
+# Change Group
+def change_group(driver) -> None:
+    settings_page = SettingsPage(driver)
+    settings_page.change_group(2)
+
+def open_vtb(driver) -> None:
+    vtb_page = VTBPage(driver)
+    vtb_page.select_vtb_option("Patient Services")
+
+def clear_and_send_keys(element, text) -> None:
     element.clear()
     element.send_keys(text)
     
-def main():
-    print("Hello from itemized-statement!")
+def main() -> None:
+    load_dotenv()
+    setup_logging(LOG_PATH)
+    driver = create_chrome_driver()
+    login_to_idx(driver)
+    change_group(driver)
+    open_vtb(driver)
 
 
 if __name__ == "__main__":
