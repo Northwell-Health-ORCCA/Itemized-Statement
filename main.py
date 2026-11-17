@@ -10,10 +10,7 @@ from db.repository import (
 )
 
 from db.exceptions import BusinessException, ApplicationException
-
-def process_invoice(invoice_number: str, group_number: str | None) -> None:  
-    """Your actual automation goes here."""  
-    pass
+from workflow import process_invoice
 
 
 def main(csv_path: str, retry_failed_only: bool = False) -> None:  
