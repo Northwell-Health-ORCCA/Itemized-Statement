@@ -5,6 +5,18 @@ description = "Ingests daily input file and prints the itemized statements in ID
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "datetime>=6.0",
+    "ipykernel>=7.4.0",
+    "loguru>=0.8.0",
+    "openpyxl>=3.1.5",
+    "pandas>=3.1.1",
+    "python-dotenv>=1.2.4",
+    "selenium>=4.52.0",
+    "sqlalchemy>=2.1.8",
+    "sqlmodel>=0.0.50",
+    "tqdm>=4.70.1",
+    "xlrd>=2.0.2",
+]
     "alembic>=1.20.1",
     "pandas>=3.1.1",
     "pytest>=9.2.0",
