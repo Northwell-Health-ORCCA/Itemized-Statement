@@ -1,7 +1,7 @@
 [project]
 name = "itemized-statement"
 version = "0.1.0"
-description = "Add your description here"
+description = "Ingests daily input file and prints the itemized statements in IDX."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -17,3 +17,20 @@ dependencies = [
     "tqdm>=4.70.1",
     "xlrd>=2.0.2",
 ]
+    "alembic>=1.20.1",
+    "pandas>=3.1.1",
+    "pytest>=9.2.0",
+    "python-dotenv>=1.2.4",
+    "sqlalchemy>=2.1.8",
+    "tqdm>=4.70.1",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.4.0",
+]
+
+[tool.pytest.ini_options]  
+testpaths = ["tests"]  
+pythonpath = ["."]  
+addopts = "-q --strict-markers"  
