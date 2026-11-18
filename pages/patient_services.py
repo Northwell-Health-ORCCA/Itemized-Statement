@@ -82,7 +82,7 @@ class PatientServices(BasePage):
             logger.error("Timeout while trying to select Patient Inquiry")
             return 
         
-    def _select_invoice_list(self, group_number):
+    def _select_invoice_list(self, group_number: str = "3"):
         try:
             invoices = WebDriverWait(self.driver, 5).until(
                 EC.presence_of_element_located(self.INVOICE_LIST_KEY)
@@ -103,7 +103,7 @@ class PatientServices(BasePage):
         except TimeoutException:
             logger.error("Timeout while trying to select Invoice List")
 
-    def navigate_to_patient_inquiry(self, patient_id: str, group_number: int):
+    def navigate_to_patient_inquiry(self, patient_id: str, group_number: str = "3"):
         self._enter_patient_prompt(patient_id)
         self._select_patient_inquiry()
         self._select_invoice_list(group_number)
