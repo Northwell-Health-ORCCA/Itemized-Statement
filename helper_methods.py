@@ -33,10 +33,10 @@ def _is_view_listbox_present(driver, listbox_element):
 
 def _get_listbox_options(
         driver, 
-        listbox_open, 
-        listbox_element, 
-        current_selection_element, 
-        listbox_options_element
+        listbox_open, #element to open the listbox
+        listbox_element, #base element for detection
+        current_selection_element, #element showing the current selection
+        listbox_options_element #parent element containing the listbox options
         ):
     if not _is_view_listbox_present(driver, listbox_element):
         _open_listbox_menu(driver, listbox_open)
@@ -57,10 +57,10 @@ def _get_listbox_options(
 def change_option_in_listbox(
         driver, 
         target_name: str, 
-        listbox_open, 
-        listbox_element, 
-        current_selection_element, 
-        listbox_options_element
+        listbox_open, #element to open the listbox
+        listbox_element, #base element for detection
+        current_selection_element, #element showing the current selection
+        listbox_options_element #parent element containing the listbox options
         ):
     current_selection, listbox_options = _get_listbox_options(
         driver, listbox_open, 
@@ -87,8 +87,8 @@ def change_option_in_listbox(
             break
     
     if target_index is None or selected_index is None:
-        logger.error(f"Target view '{target_name}' not found in view options.")
-        raise ValueError(f"Target view '{target_name}' not found in view options.")
+        logger.error(f"Target option '{target_name}' not found in list of options.")
+        raise ValueError(f"Target option '{target_name}' not found in list of options.")
     
     actions = ActionChains(driver)
     difference = target_index - selected_index
@@ -103,10 +103,15 @@ def change_option_in_listbox(
     logger.debug(f'Sending ARROW_{direction} key {presses} times.')
 
     for _ in range(presses):  
+        logger.debug(f'Sending ARROW_{direction} key.')
         listbox_element_obj.send_keys(key_to_send)  
-        time.sleep(0.25)  # give the UI time to register/update each press
-    listbox_element_obj.send_keys(Keys.ENTER)
+        logger.debug(f'Sent ARROW_{direction} key.')
+        time.sleep(0.35)  # give the UI time to register/update each press
     
+    logger.debug(f'Sending ENTER key to select the option.')
+    listbox_element_obj.send_keys(Keys.ENTER)
+
+    logger.debug(f'Sending ENTER key through ActionChains.')
     actions.send_keys(Keys.ENTER)
     actions.perform()
-    logger.success(f"View changed to '{target_name}'.")
+    logger.success(f"Option changed to '{target_name}'.")
