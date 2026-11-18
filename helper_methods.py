@@ -6,6 +6,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import time
 
+
 from loguru import logger
 
 def clear_and_send_keys(element, text):
@@ -44,12 +45,12 @@ def _get_listbox_options(
     hidden_div = parent_div.find_elements(By.CLASS_NAME, "rcm-select-hidden-div")
     child_divs = hidden_div[0].find_elements(By.TAG_NAME, "div") if hidden_div else []
     listbox_options = [child.get_attribute('textContent') for child in child_divs] 
-    # logger.debug(f'View options retrieved: {listbox_options}')
+    logger.debug(f'View options retrieved: {listbox_options}')
   
 
     current_selection = driver.find_element(*current_selection_element).get_attribute("textContent")
     
-    # logger.debug(f'Current selection: {current_selection}')
+    logger.debug(f'Current selection: {current_selection}')
 
     return current_selection, listbox_options
 
@@ -103,7 +104,7 @@ def change_option_in_listbox(
 
     for _ in range(presses):  
         listbox_element_obj.send_keys(key_to_send)  
-        time.sleep(0.15)  # give the UI time to register/update each press
+        time.sleep(0.25)  # give the UI time to register/update each press
     listbox_element_obj.send_keys(Keys.ENTER)
     
     actions.send_keys(Keys.ENTER)
