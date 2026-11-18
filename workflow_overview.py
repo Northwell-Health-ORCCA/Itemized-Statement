@@ -11,12 +11,12 @@ import os
 from pathlib import Path
 import time
 
-from pages.login_page import LoginPage
-from pages.open_settings import SettingsPage
-from pages.open_vtb import VTBPage
-from pages.patient_services.patient_services import PatientServices
+from pages.login import LoginPage
+from pages.settings import SettingsPage
+from pages.vtb import VTBPage
+from pages.patient_services import PatientServices
 from pages.patient_services.demand_statement import DemandStatement
-from pages.invoice_list import InvoiceList
+from pages.patient_services.invoice_list import InvoiceList
 from pages.patient_services.select_invoices import SelectInvoices
 from pages.patient_services.device_selection import DeviceSelection
 

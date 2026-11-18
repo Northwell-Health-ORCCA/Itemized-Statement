@@ -8,10 +8,10 @@ import time
 from loguru import logger
 
 from pages.base import BasePage
-from pages.patient_services.demand_statement import DemandStatement
-from pages.patient_services.device_selection import DeviceSelection
-from pages.patient_services.invoice_list import InvoiceList
-from pages.patient_services.select_invoices import SelectInvoices
+from pages.pt_services.demand_statement import DemandStatement
+from pages.pt_services.device_selection import DeviceSelection
+from pages.pt_services.invoice_list import InvoiceList
+from pages.pt_services.select_invoices import SelectInvoices
 
 
 class PatientServices(BasePage):
