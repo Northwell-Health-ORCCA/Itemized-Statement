@@ -15,7 +15,7 @@ class IDXClient:
         self.password = password
         
         self.driver = self._create_chrome_driver()
-        self.login_page = LoginPage(self.driver)
+        self.login_page = LoginPage(self.driver, self.username, self.password)
         self.settings_page = SettingsPage(self.driver)
         self.vtb_page = VTBPage(self.driver)
         self.patient_services = PatientServices(self.driver)
