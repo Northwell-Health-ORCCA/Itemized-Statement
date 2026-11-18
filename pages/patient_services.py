@@ -8,6 +8,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+from db.exceptions import ApplicationException
 from pages.base import BasePage
 from pages.pt_services.demand_statement import DemandStatement
 from pages.pt_services.device_selection import DeviceSelection
@@ -57,14 +58,13 @@ class PatientServices(BasePage):
             patient_prompt.send_keys(f'-{patient_id}')
             patient_prompt.send_keys(Keys.TAB)
 
-            if not self._confirm_new_patient_selected(patient_id, patient_prompt):
-                logger.warning(f"Patient ID {patient_id} not selected correctly")
-                return False
-            logger.debug(f"Patient ID {patient_id}")
-            return True
+            # if not self._confirm_new_patient_selected(patient_id, patient_prompt):
+            #     logger.warning(f"Patient ID {patient_id} not selected correctly")
+            #     raise ApplicationException(f"Patient ID {patient_id} not selected correctly")
+            return
         except TimeoutException:
             logger.error(f"Timeout while trying to select Patient ID {patient_id}")
-            return False
+            raise ApplicationException(f"Timeout while trying to select Patient ID {patient_id}")
         
     def _select_patient_inquiry(self):
         try:

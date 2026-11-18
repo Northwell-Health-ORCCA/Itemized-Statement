@@ -19,7 +19,7 @@ from db.repository import (
 )
 from IDXClient import IDXClient
 from utils.logging import setup_logging
-from workflow import process_invoice
+from workflow import process_invoice, reset
 
 
 def main(file_date: str, retry_failed_only: bool = True) -> None:
@@ -35,8 +35,7 @@ def main(file_date: str, retry_failed_only: bool = True) -> None:
         raise ValueError("file_date must be in YYYYMMDD format")
     
     file_name = f'{file_date}_PAANS_BOT_v2.csv'
-    file_path = '//NASDATA201/SHAREDATA/MV-RCR01/SHARED/RC Experience\
-        /DO NOT REMOVE - HCx Ontario Reports'
+    file_path = '//NASDATA201/SHAREDATA/MV-RCR01/SHARED/RC Experience/DO NOT REMOVE - HCx Ontario Reports'
     csv_path = os.path.join(file_path, file_name)
     logger.debug(f"Input path exists: {os.path.exists(csv_path)}")
 
@@ -75,7 +74,7 @@ def main(file_date: str, retry_failed_only: bool = True) -> None:
         
         idx_client.vtb_page.select_vtb_option("Patient Services")
         
-        for item in work:  
+        for item in tqdm(work):  
             started = now() 
             
             try:  
@@ -97,6 +96,8 @@ def main(file_date: str, retry_failed_only: bool = True) -> None:
                 status = ItemStatus.FAILED
                 exception_type = ExceptionType.APPLICATION
                 exception_reason = f"{type(e).__name__}: {e}"[:4000]
+                
+                reset(idx_client=idx_client)
             except Exception as e:  # noqa: BLE001
                 end_time = now()
                 status = ItemStatus.FAILED

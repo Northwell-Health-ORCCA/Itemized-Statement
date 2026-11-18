@@ -28,10 +28,11 @@ class IDXClient:
             Configured Chrome WebDriver instance
         """
         options = webdriver.ChromeOptions()
+        # options.add_argument('--headless=new')
+        # options.add_argument('--no-sandbox')
         options.add_argument(f"--force-device-scale-factor={CHROME_SCALE_FACTOR}")
         options.add_argument("--start-maximized")
-        
-        options.add_argument(f"--remote-debugging-port={REMOTE_DEBUG_PORT}")
+        # options.add_argument(f"--remote-debugging-port={REMOTE_DEBUG_PORT}")
         
         return webdriver.Chrome(options=options)
     

@@ -43,6 +43,11 @@ class SettingsPage(BasePage):
         WebDriverWait(self.driver, 2).until(
             EC.presence_of_element_located(self.LOGOUT_BTN)
         ).click()
+        
+        try:
+            self.driver.find_element(*MODAL_OK).click()
+        except NoSuchElementException:
+            pass
 
     def change_group(self, group: int) -> None:
         self._open_settings()

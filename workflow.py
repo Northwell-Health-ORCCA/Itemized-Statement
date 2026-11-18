@@ -1,6 +1,14 @@
 from IDXClient import IDXClient
 
 
+def reset(idx_client: IDXClient) -> None:
+    """Reset the IDXClient instance to its initial state."""
+    idx_client.settings_page.logout()
+    idx_client.login_page.login()
+    idx_client.settings_page.change_group(2)
+    idx_client.vtb_page.select_vtb_option("Patient Services")
+
+
 def process_invoice(idx_client: IDXClient,invoice_number: str, group_number: str | None) -> None:  
     """Process an invoice using the provided IDXClient instance."""  
     
