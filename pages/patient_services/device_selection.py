@@ -13,15 +13,11 @@ from dotenv import load_dotenv
 
 class DeviceSelection:
 
-    def __init__(self, driver, device_name=None):  
+    def __init__(self, driver):  
         load_dotenv()  
+        device_name = os.getenv('DEVICE_NAME')
         self.driver = driver  
-        self.environment = os.environ.get('ENVIRONMENT', '').lower()
-
-        if self.environment == 'dev':  
-            self.device_name = ''  
-        else:  
-            self.device_name = '' if not device_name else device_name
+        self.device_name = '' if not device_name else device_name
 
     def _insert_device_name(self, device_name) -> None:  
         locator_tuple = (By.ID, "sAf1")  
