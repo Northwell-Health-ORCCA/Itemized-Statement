@@ -15,22 +15,23 @@ class LoginPage(BasePage):
     LOGIN_BUTTON = (By.ID, 'pfh-login-module-button-login')
     
 
-    def __init__(self, driver):
+    def __init__(self, driver, username: str, password: str):
         self.driver = driver
+        self.username = username
+        self.password = password
         self.URL = 'https://nsli-prod.rcm.athenahealth.com/rcm/#cfSystem=NSLI'
         self.navigate_to_login()
 
     def navigate_to_login(self) -> None:
         self.driver.get(self.URL)
     
-    def _attempt_login(self, username: str, password: str) -> bool:
+    def _attempt_login(self) -> bool:
 
         WebDriverWait(self.driver, 10).until(EC.presence_of_element_located(self.USERNAME_INPUT))
         username_input = self.driver.find_element(*self.USERNAME_INPUT)
-        self.clear_and_send_keys(username_input, username)
-
+        self.clear_and_send_keys(username_input, self.username)
         password_input = self.driver.find_element(*self.PASSWORD_INPUT)
-        self.clear_and_send_keys(password_input, password)
+        self.clear_and_send_keys(password_input, self.password)
 
         login_button = self.driver.find_element(*self.LOGIN_BUTTON)
 
@@ -70,6 +71,6 @@ class LoginPage(BasePage):
         Returns:
             True if login is successful, False otherwise.
         """
-        if not self._attempt_login(username, password):
+        if not self._attempt_login():
             return False
         return self._confirm_login()
