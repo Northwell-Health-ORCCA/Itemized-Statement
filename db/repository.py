@@ -160,7 +160,7 @@ def record_attempt(
     exception_reason: str | None = None,  
     group_number: str | None = None,  
 ) -> Attempt:  
-    """Append to `attempts` and sync `outputs` in one transaction.  
+    """Upsert into `attempts` by (invoice_number, run_id) and sync `outputs` in one transaction.  
     The only place either table is written."""  
     run = session.get(Run, run_id)  
     if run is None:  
@@ -186,23 +186,41 @@ def record_attempt(
         session.add(output)  
         session.flush()
 
-    n = output.attempt_count + 1
+    staged_attempt = session.execute(
+        select(Attempt)
+        .where(
+            Attempt.invoice_number == invoice_number,
+            Attempt.run_id == run.run_id,
+            Attempt.status == ItemStatus.STAGED
+        )
+        .limit(1)
+    ).scalar_one_or_none()
 
-    attempt = Attempt(  
-        invoice_number=invoice_number,  
-        attempt_number=n,  
-        file_name=run.file_name,  
-        run_id=run.run_id,  
-        group_number=group_number,  
-        status=status,  
-        exception_type=exception_type,  
-        exception_reason=exception_reason,  
-        start_time=start_time,  
-        end_time=end_time,  
-    )  
-    session.add(attempt)
+    if staged_attempt is None:
+        n = output.attempt_count + 1
+        attempt = Attempt(  
+            invoice_number=invoice_number,  
+            attempt_number=n,  
+            file_name=run.file_name,  
+            run_id=run.run_id,  
+            group_number=group_number,  
+            status=status,  
+            exception_type=exception_type,  
+            exception_reason=exception_reason,  
+            start_time=start_time,  
+            end_time=end_time,  
+        )
+        session.add(attempt)
+        output.attempt_count = n
+    else:
+        staged_attempt.file_name = run.file_name
+        staged_attempt.group_number = group_number
+        staged_attempt.status = status
+        staged_attempt.exception_type = exception_type
+        staged_attempt.exception_reason = exception_reason
+        staged_attempt.start_time = start_time
+        staged_attempt.end_time = end_time
 
-    output.attempt_count = n  
     output.status = status  
     output.exception_type = exception_type  
     output.exception_reason = exception_reason  
