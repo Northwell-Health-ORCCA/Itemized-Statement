@@ -7,8 +7,12 @@ from selenium.webdriver.common.action_chains import ActionChains
 import time
 from loguru import logger
 
+from pages.base import BasePage
+from pages.patient_services.demand_statement import DemandStatement
+from pages.patient_services.device_selection import DeviceSelection
 
-class PatientServices:
+
+class PatientServices(BasePage):
     PATIENT_PROMPT = (By.ID, "PatientPrompt")
     PATIENT_INQUIRY_HYPER = (By.ID, "lnkPatientInquiry")
     PATIENT_INQUIRY_HEADER = (
@@ -19,6 +23,11 @@ class PatientServices:
     
     def __init__(self, driver):
         self.driver = driver
+        
+        self.demand_statement = DemandStatement(driver)
+        self.device_selection = DeviceSelection(driver)
+                
+        
 
     def _click_magnifier(self):
         magnifier = WebDriverWait(self.driver, 1).until(
