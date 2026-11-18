@@ -1,13 +1,20 @@
-import csv  
-from datetime import datetime, timedelta  
-from pathlib import Path  
+import csv
+from datetime import datetime, timedelta
+from pathlib import Path
 from typing import NamedTuple
 
-from sqlalchemy import func, insert, select  
+from sqlalchemy import func, insert, select
 from sqlalchemy.orm import aliased
 
-from .models import (  
-    Attempt, ExceptionType, Input, ItemStatus, Output, Run, RunStatus, now  
+from .models import (
+    Attempt,
+    ExceptionType,
+    Input,
+    ItemStatus,
+    Output,
+    Run,
+    RunStatus,
+    now,
 )
 
 
@@ -102,14 +109,17 @@ def register_input_file(session, csv_path: str | Path, run_id: str) -> int:
             })
 
     if rows:  
-        session.execute(insert(Input), rows)  
+        session.execute(insert(Input), rows)
+        session.commit()
+        for row in rows:
+            record_attempt(session, run_id=run_id, invoice_number=row["invoice_number"], group_number=row["group_number"], start_time=now())
     return len(rows)
 
 
 # ---------- Work selection ----------
 
 def get_work_items(  
-    session, run_id: str, *, retry_failed_only: bool = False  
+    session, run_id: str, *, retry_failed_only: bool = True  
 ) -> list[WorkItem]:  
     """Invoices from this run's file still needing work.
 
@@ -130,7 +140,7 @@ def get_work_items(
     )
 
     if retry_failed_only:  
-        failed = select(Output.invoice_number).where(Output.status == ItemStatus.FAILED)  
+        failed = select(Output.invoice_number).where(Output.status.in_([ItemStatus.FAILED,ItemStatus.STAGED]))  
         stmt = stmt.where(Input.invoice_number.in_(failed))
 
     return [WorkItem(inv, grp) for inv, grp in session.execute(stmt)]
@@ -143,8 +153,8 @@ def record_attempt(
     *,  
     run_id: str,  
     invoice_number: str,  
-    status: ItemStatus,  
     start_time: datetime,  
+    status: ItemStatus = ItemStatus.STAGED,  
     end_time: datetime | None = None,  
     exception_type: ExceptionType | None = None,  
     exception_reason: str | None = None,  
@@ -161,14 +171,15 @@ def record_attempt(
     if output is None:  
         # First file this invoice ever appeared on — from inputs, not attempts  
         first = session.execute(  
-            select(Input.file_name, Input.loaded_at)  
+            select(Input.file_name, Input.loaded_at, Input.run_id)  
             .where(Input.invoice_number == invoice_number)  
             .order_by(Input.loaded_at, Input.id)  
             .limit(1)  
-        ).first()  
+        ).first()          
         output = Output(  
             invoice_number=invoice_number,  
             first_file_name=first.file_name if first else run.file_name,  
+            first_run_id=first.run_id if first else run.run_id,
             first_seen_at=first.loaded_at if first else now(),  
             attempt_count=0,  
         )  

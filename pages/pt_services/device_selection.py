@@ -1,27 +1,25 @@
+import csv
+import os
 import time
 
-from selenium.webdriver.remote.webelement import WebElement
-from selenium.common import NoSuchElementException, TimeoutException
-from selenium.webdriver import ActionChains, Keys
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-import os
-import csv
-from loguru import logger
 from dotenv import load_dotenv
+from loguru import logger
+from selenium.common import TimeoutException
+from selenium.webdriver import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
+from db.exceptions import ApplicationException
+
 
 class DeviceSelection:
 
-    def __init__(self, driver, device_name=None):  
+    def __init__(self, driver):  
         load_dotenv()  
+        device_name = os.getenv('DEVICE_NAME')
         self.driver = driver  
-        self.environment = os.environ.get('ENVIRONMENT', '').lower()
-
-        if self.environment == 'dev':  
-            self.device_name = ''  
-        else:  
-            self.device_name = '' if not device_name else device_name
+        self.device_name = '' if not device_name else device_name
 
     def _insert_device_name(self, device_name) -> None:  
         locator_tuple = (By.ID, "sAf1")  
@@ -34,7 +32,7 @@ class DeviceSelection:
         device_input_field.send_keys(Keys.TAB)  
         logger.debug(f"Device name '{device_name}' entered.")
 
-    def _switch_to_new_window(self, original_window, expected_url, timeout=5):  
+    def _switch_window(self, expected_url, timeout=5):  
         def _window_with_url(driver):  
             for handle in driver.window_handles:  
                 driver.switch_to.window(handle)  
@@ -60,13 +58,13 @@ class DeviceSelection:
     def _close_new_window(self) -> None:  
         orig_window = self.driver.current_window_handle
         try:
-            self._switch_to_new_window(  
-                orig_window,  
-                expected_url="https://nsli-prod.rcm.athenahealth.com/rcm/window.html"  
-            )  
+            self._switch_window(
+                expected_url="https://nsli-prod.rcm.athenahealth.com/rcm/window.html",
+                timeout=5
+            )
         except TimeoutException:
             logger.warning("Timeout while trying to switch to new window.")
-            raise TimeoutException("Failed to switch to new window.")
+            raise ApplicationException("Failed to switch to new window.")
 
         locator_tuple = (By.CSS_SELECTOR, "body > div.popup-window-content > div > div")  
         element = WebDriverWait(self.driver, 3).until(  
@@ -82,7 +80,6 @@ class DeviceSelection:
             writer = csv.writer(csvfile)  
             writer.writerow([body_text])
 
-        self.driver.close()  
         self.driver.switch_to.window(orig_window)
 
     def _confirm_on_inv_list(self):

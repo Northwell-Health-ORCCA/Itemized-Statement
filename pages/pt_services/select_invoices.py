@@ -1,13 +1,13 @@
-from selenium.webdriver.remote.webelement import WebElement
+import time
+
+from loguru import logger
 from selenium.common import NoSuchElementException, TimeoutException
 from selenium.webdriver import ActionChains, Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
-import os
-import csv
-import time
-from loguru import logger
+from selenium.webdriver.support.ui import WebDriverWait
+
 
 class SelectInvoices:
     def __init__(self, driver):
@@ -68,7 +68,7 @@ class SelectInvoices:
             except NoSuchElementException:
                 logger.debug(f"Invoice row for '{invoice_number}' not found.")
                 return False
-        logger.debug(f"No invoice number provided for filtering.")
+        logger.debug("No invoice number provided for filtering.")
         return False
 
     def _select_check_box(self, element: WebElement):
@@ -106,7 +106,9 @@ class SelectInvoices:
             invoice_element.send_keys(invoice_number)
             invoice_element.send_keys(Keys.RETURN)
 
+        time.sleep(0.5)
         invoice_filtered = self._confirm_invoice_filtered(invoice_number)
+        time.sleep(0.5)
         if invoice_filtered:
             checkbox = invoice_filtered.find_element(By.CSS_SELECTOR, "input.fe_c_checkbox__input")
             self._select_check_box(invoice_filtered)
@@ -114,6 +116,8 @@ class SelectInvoices:
             is_checked = checkbox.get_attribute("aria-checked") == "true"  
             logger.debug(f"Checkbox is_checked status: {is_checked}")
             if is_checked:
+                self._click_ok()
+                time.sleep(0.5)
                 self._click_ok()
                 return True
             return False

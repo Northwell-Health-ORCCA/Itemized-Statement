@@ -1,14 +1,13 @@
-from selenium.webdriver import Keys
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common import keys
-from selenium.webdriver.remote.webdriver import WebDriver
 import time
+
 from loguru import logger
-import helper_methods
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common import keys
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 class DemandStatement:
@@ -82,22 +81,17 @@ class DemandStatement:
             logger.error("Timeout while trying to click CLOSE button.")
 
 
-    def demand_statement(
-            self, 
-            driver: WebDriver,
-            stmt_element: tuple = STMT_FORMAT_ELEMENT, 
-            stmt_value: str = STMT_VALUE,
-            ):
+    def demand_statement(self):
         try:
             if self._confirm_demand_statement():
-                self._send_value_to_field(stmt_element, stmt_value)
-                parent_div = driver.find_element(By.ID, 'sAf7r1')
+                self._send_value_to_field(self.STMT_FORMAT_ELEMENT, self.STMT_VALUE)
+                parent_div = self.driver.find_element(By.ID, 'sAf7r1')
                 clickable_element = parent_div.find_element(
                     By.CSS_SELECTOR, 
                     '#sAf7r1 > div.css-b62m3t-container'
                     )
                 #click and send "Y" to the element using action chain
-                action = ActionChains(driver)
+                action = ActionChains(self.driver)
                 TAB = '\ue004'
                 action.move_to_element(clickable_element
                                        ).click().send_keys("Y").send_keys(TAB).perform()
@@ -107,7 +101,5 @@ class DemandStatement:
                     
                 time.sleep(0.35)
 
-                             
-
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error while processing demand statement: {e}")

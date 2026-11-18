@@ -5,9 +5,9 @@ from loguru import logger
 import time
 from main import BATCH_OPEN_RETRY_SLEEP, VTB_OPTION
 
-from pages.open_vtb import VTBPage
-from pages.login_page import LoginPage
-from pages.open_settings import SettingsPage
+from pages.vtb import VTBPage
+from pages.login import LoginPage
+from pages.settings import SettingsPage
 
 def recover_from_fatal_error(
     driver: webdriver.Chrome,

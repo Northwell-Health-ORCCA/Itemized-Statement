@@ -2,12 +2,15 @@ from pathlib import Path
 from loguru import logger
 from datetime import datetime
 
-def setup_logging(log_folder_path: Path) -> None:
+def setup_logging(log_folder_path: Path | str) -> None:
     """Configure loguru logger with file outputs for debug and info levels.
     
     Args:
         log_folder_path: Directory where log files will be saved
     """
+    if isinstance(log_folder_path, str):
+        log_folder_path = Path(log_folder_path)
+    log_folder_path.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y-%m-%d %H %M")
     debug_path = log_folder_path / f"debug_{timestamp}.log"
     info_path = log_folder_path / f"info_{timestamp}.log"

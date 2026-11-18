@@ -1,10 +1,17 @@
-import enum  
-import uuid  
-from datetime import datetime, timezone
+import enum
+import uuid
+from datetime import datetime
 
-from sqlalchemy import (  
-    Boolean, DateTime, Enum, ForeignKey, Index, Integer, String, Text, UniqueConstraint  
-)  
+from sqlalchemy import (
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -29,7 +36,8 @@ class RunStatus(str, enum.Enum):
     FAILED = "failed"
 
 
-class ItemStatus(str, enum.Enum):  
+class ItemStatus(str, enum.Enum):
+    STAGED = "staged"
     SUCCESS = "success"  
     FAILED = "failed"
 

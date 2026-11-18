@@ -1,15 +1,12 @@
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
-import time
-from loguru import logger
-import helper_methods
+from selenium.webdriver.support.ui import WebDriverWait
+
+from pages.base import BasePage
 
 
-class SettingsPage:
+class SettingsPage(BasePage):
 
     MENU_BUTTON = (By.ID, "user_menu_btn-button")
     HOG_SCREEN_LINK = (By.ID, "tools_HOG_1")
@@ -46,12 +43,16 @@ class SettingsPage:
         WebDriverWait(self.driver, 2).until(
             EC.presence_of_element_located(self.LOGOUT_BTN)
         ).click()
+        
+        try:
+            self.driver.find_element(*MODAL_OK).click()
+        except NoSuchElementException:
+            pass
 
     def change_group(self, group: int) -> None:
         self._open_settings()
         self._open_hog_screen()
-        helper_methods.change_option_in_listbox(
-            self.driver,
+        self.change_option_in_listbox(
             target_name=str(group),
             listbox_open=self.GROUP_SELECTOR,
             listbox_element=self.LISTBOX,
