@@ -1,0 +1,4 @@
+-- database: c:\Users\pa_dpashayan\Desktop\PyProjects\Itemized-Statement\itemized_statements.db
+delete from inputs;
+
+delete from runs;

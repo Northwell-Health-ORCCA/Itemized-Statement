@@ -1,4 +1,5 @@
 from IDXClient import IDXClient
+import time
 
 def process_invoice(idx_client: IDXClient,invoice_number: str, group_number: str | None) -> None:  
     """Process an invoice using the provided IDXClient instance."""  

@@ -1,20 +1,30 @@
-from pathlib import Path
-from glob import glob
 from tqdm import tqdm
 from datetime import datetime
 import os
+from dotenv import load_dotenv
+from loguru import logger
 
 from db.base import session_scope  
-from db.models import ExceptionType, ItemStatus, Run, RunStatus, now  
+from db.models import ExceptionType, ItemStatus, Run, now  
 from db.repository import (  
-    complete_run, create_run, get_work_items, record_attempt, register_input_file, reconcile, run_summary, start_run  
+    complete_run, 
+    create_run, 
+    get_work_items, 
+    record_attempt, 
+    register_input_file, 
+    run_summary, 
+    start_run  
 )
 
 from db.exceptions import BusinessException, ApplicationException
+from utils.logging import setup_logging
 from workflow import process_invoice
+from IDXClient import IDXClient
 
 
-def main(file_date: str, retry_failed_only: bool = False) -> None:  
+def main(file_date: str, retry_failed_only: bool = True) -> None:
+    load_dotenv()
+    
     # check that file_date is in YYYYMMDD format
     if not file_date.isdigit() or len(file_date) != 8:
         raise ValueError("file_date must be in YYYYMMDD format")
@@ -27,13 +37,14 @@ def main(file_date: str, retry_failed_only: bool = False) -> None:
     file_name = f'{file_date}_PAANS_BOT_v2.csv'
     file_path = f'//NASDATA201/SHAREDATA/MV-RCR01/SHARED/RC Experience/DO NOT REMOVE - HCx Ontario Reports'
     csv_path = os.path.join(file_path, file_name)
+    logger.debug(f"Input path exists: {os.path.exists(csv_path)}")
 
     # ── Transaction 1: create the run, load inputs ──────────────  
     with session_scope() as session:  
         run = create_run(session, file_name) #! sets status = loaded  
         run_id = run.run_id  
         loaded = register_input_file(session, csv_path, run_id)  
-        print(f"Run {run_id} (#{run.run_id} on {file_name}), {loaded} new rows")
+        logger.info(f"Run {run_id} (#{run.run_id} on {file_name}), {loaded} new rows")
 
     # ── Transaction 2: flip to in_process, grab the work list ───  
     with session_scope() as session:  
@@ -50,11 +61,22 @@ def main(file_date: str, retry_failed_only: bool = False) -> None:
     # ── Transactions ──────────────────────  
     fatal = None  
     try:  
+        
+        idx_client = IDXClient(
+            username = os.environ['IDX_USERNAME'],
+            password = os.environ['IDX_PASSWORD']
+        )
+        
+        idx_client.login_page.login()
+        idx_client.settings_page.change_group(2)
+        
+        idx_client.vtb_page.select_vtb_option("Patient Services")
+        
         for item in work:  
             started = now() 
             
             try:  
-                process_invoice(item.invoice_number, item.group_number)
+                process_invoice(idx_client, item.invoice_number, item.group_number)
             
                 end_time = now()
                 status: ItemStatus = ItemStatus.SUCCESS
@@ -94,8 +116,11 @@ def main(file_date: str, retry_failed_only: bool = False) -> None:
         # Close the run after processing all invoices
         with session_scope() as session:  
             complete_run(session, run_id, failure_reason=fatal) 
-            print(run_summary(session, run_id))  
+            logger.success(run_summary(session, run_id))  
             
 if __name__ == "__main__":
+    load_dotenv()
+    
+    setup_logging('./logs')
     today = datetime.today().strftime('%Y%m%d')
     main(today)
