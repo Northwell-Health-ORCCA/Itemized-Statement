@@ -4,15 +4,14 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 from loguru import logger
 
-class VTBPage:
+from pages.base import BasePage
+    
+class VTBPage(BasePage):
     VTB_BUTTON = (By.ID, "vtbToggleButton")
     VTB_CONTAINER = (By.CSS_SELECTOR, "div.vtb-container open")
     
     HEADER_DICT = {
-        'Patient Services': ((By.ID, "lblLabel62"), "Patient Services"),
-        'Payment Posting': ((By.ID, "formHeader"), "Post Receipts"),
-        'ETM': ((By.ID, "CBETM_0_NSLI_ETM_TES_EDITS"), "TES Edits"),
-        }
+        'Patient Services': ((By.ID, "lblLabel62"), "Patient Services")}
     
     def __init__(self, driver):
         self.driver = driver
@@ -23,7 +22,6 @@ class VTBPage:
         buttons = options_obj.find_elements(By.TAG_NAME, "button")
         for button in buttons:
             options[button.text] = (By.ID, button.get_attribute('id'))
-        # logger.debug(f"VTB options found: {options}")
         return options
 
     def _is_vtb_open(self):
