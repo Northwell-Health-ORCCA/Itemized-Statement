@@ -29,7 +29,8 @@ class RunStatus(str, enum.Enum):
     FAILED = "failed"
 
 
-class ItemStatus(str, enum.Enum):  
+class ItemStatus(str, enum.Enum):
+    STAGED = "staged"
     SUCCESS = "success"  
     FAILED = "failed"
 
