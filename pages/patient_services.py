@@ -10,6 +10,8 @@ from loguru import logger
 from pages.base import BasePage
 from pages.patient_services.demand_statement import DemandStatement
 from pages.patient_services.device_selection import DeviceSelection
+from pages.patient_services.invoice_list import InvoiceList
+from pages.patient_services.select_invoices import SelectInvoices
 
 
 class PatientServices(BasePage):
@@ -24,9 +26,10 @@ class PatientServices(BasePage):
     def __init__(self, driver):
         self.driver = driver
         
-        self.demand_statement = DemandStatement(driver)
-        self.device_selection = DeviceSelection(driver)
-                
+        self.demand_statement = DemandStatement(self.driver)
+        self.device_selection = DeviceSelection(self.driver)
+        self.invoice_list = InvoiceList(self.driver)        
+        self.select_invoices = SelectInvoices(self.driver)
         
 
     def _click_magnifier(self):
