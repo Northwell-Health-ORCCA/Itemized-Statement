@@ -1,28 +1,30 @@
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common import keys
 import time
+
 from loguru import logger
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common import keys
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
 
 class InvoiceList:
     
-    FILTER_FIELDS = {
+    FILTER_FIELDS = {  # noqa: RUF012
         1: 'sAf1r1',
         2: 'sAf1r2'
     }
-    OPERATOR_FIELDS = {
+    OPERATOR_FIELDS = {  # noqa: RUF012
         1: 'sAf2r1',
         2: 'sAf2r2'
     }
-    VALUE_FIELDS = {
+    VALUE_FIELDS = {  # noqa: RUF012
         1: 'sAf3r1',
         2: 'sAf3r2'
     }
 
-    BASE_ACTION_CODES = {
+    BASE_ACTION_CODES = {  # noqa: RUF012
         "1": (By.ID, "selectorActionCode1"), #multigroup view
         "B": (By.ID, "selectorActionCodeB"), #all/bal/cred bal
         "D": (By.ID, "selectorActionCodeD"), #view detail
@@ -37,7 +39,7 @@ class InvoiceList:
         "W": (By.ID, "selectorActionCodeW"), #edi
         "Z": (By.ID, "selectorActionCodeZ") #multi inv detail
     }
-    MORE_INQ_ACTION_CODES = {
+    MORE_INQ_ACTION_CODES = {  # noqa: RUF012
         "BACK": (By.ID, "backButton"), #back button
         "3": (By.ID, "selectorActionCode3"), #category info
         "4": (By.ID, "selectorActionCode4"), #outsource info
@@ -56,7 +58,7 @@ class InvoiceList:
         "Y": (By.ID, "selectorActionCodeY"), #tes inq
         "Z": (By.ID, "selectorActionCodeZ") #archive task note
     }
-    MORE_ACTIONS_ACTION_CODES = {
+    MORE_ACTIONS_ACTION_CODES = {  # noqa: RUF012
         "BACK": (By.ID, "backButton"), #back button
         "1": (By.ID, "selectorActionCode1"), #print ledgers etm
         "B": (By.ID, "selectorActionCodeB"), #acct bal by fsc

@@ -1,12 +1,12 @@
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
 import time
 
-
 from loguru import logger
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
 
 class BasePage:
     def __init__(self, driver):
@@ -21,8 +21,8 @@ class BasePage:
             wait = WebDriverWait(self.driver, 1)
             wait.until(EC.element_to_be_clickable(listbox_open)).click()
             logger.debug('Listbox menu opened.')
-        except:
-            logger.error('Failed to open listbox menu.')
+        except Exception as e:  # noqa: BLE001
+            logger.error(f'Failed to open listbox menu: {e}')
 
     def _is_view_listbox_present(self, listbox_element):
         try:
@@ -30,8 +30,8 @@ class BasePage:
             wait.until(EC.presence_of_element_located(listbox_element))
             logger.debug('Listbox is present.')
             return True
-        except:
-            logger.debug('Listbox is not present.')
+        except Exception as e:  # noqa: BLE001
+            logger.debug(f'Listbox is not present: {e}')
             return False
 
     def _get_listbox_options(
@@ -111,10 +111,10 @@ class BasePage:
             logger.debug(f'Sent ARROW_{direction} key.')
             time.sleep(0.35)  # give the UI time to register/update each press
         
-        logger.debug(f'Sending ENTER key to select the option.')
+        logger.debug('Sending ENTER key to select the option.')
         listbox_element_obj.send_keys(Keys.ENTER)
 
-        logger.debug(f'Sending ENTER key through ActionChains.')
+        logger.debug('Sending ENTER key through ActionChains.')
         actions.send_keys(Keys.ENTER)
         actions.perform()
         logger.success(f"Option changed to '{target_name}'.")

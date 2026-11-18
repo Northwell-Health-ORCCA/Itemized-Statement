@@ -1,10 +1,17 @@
-import enum  
-import uuid  
-from datetime import datetime, timezone
+import enum
+import uuid
+from datetime import datetime
 
-from sqlalchemy import (  
-    Boolean, DateTime, Enum, ForeignKey, Index, Integer, String, Text, UniqueConstraint  
-)  
+from sqlalchemy import (
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base

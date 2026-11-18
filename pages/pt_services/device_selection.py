@@ -1,15 +1,15 @@
+import csv
+import os
 import time
 
-from selenium.webdriver.remote.webelement import WebElement
-from selenium.common import NoSuchElementException, TimeoutException
-from selenium.webdriver import ActionChains, Keys
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-import os
-import csv
-from loguru import logger
 from dotenv import load_dotenv
+from loguru import logger
+from selenium.common import TimeoutException
+from selenium.webdriver import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
 
 class DeviceSelection:
 

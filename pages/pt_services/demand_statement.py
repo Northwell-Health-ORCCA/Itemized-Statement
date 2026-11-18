@@ -1,13 +1,13 @@
-from selenium.webdriver import Keys
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common import keys
-from selenium.webdriver.remote.webdriver import WebDriver
 import time
+
 from loguru import logger
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common import keys
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 class DemandStatement:
@@ -101,5 +101,5 @@ class DemandStatement:
                     
                 time.sleep(0.35)
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error while processing demand statement: {e}")

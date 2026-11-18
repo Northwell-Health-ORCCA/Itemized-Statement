@@ -1,13 +1,20 @@
-import csv  
-from datetime import datetime, timedelta  
-from pathlib import Path  
+import csv
+from datetime import datetime, timedelta
+from pathlib import Path
 from typing import NamedTuple
 
-from sqlalchemy import func, insert, select  
+from sqlalchemy import func, insert, select
 from sqlalchemy.orm import aliased
 
-from .models import (  
-    Attempt, ExceptionType, Input, ItemStatus, Output, Run, RunStatus, now  
+from .models import (
+    Attempt,
+    ExceptionType,
+    Input,
+    ItemStatus,
+    Output,
+    Run,
+    RunStatus,
+    now,
 )
 
 

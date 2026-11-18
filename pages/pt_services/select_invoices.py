@@ -1,13 +1,13 @@
-from selenium.webdriver.remote.webelement import WebElement
+import time
+
+from loguru import logger
 from selenium.common import NoSuchElementException, TimeoutException
 from selenium.webdriver import ActionChains, Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
-import os
-import csv
-import time
-from loguru import logger
+from selenium.webdriver.support.ui import WebDriverWait
+
 
 class SelectInvoices:
     def __init__(self, driver):
@@ -68,7 +68,7 @@ class SelectInvoices:
             except NoSuchElementException:
                 logger.debug(f"Invoice row for '{invoice_number}' not found.")
                 return False
-        logger.debug(f"No invoice number provided for filtering.")
+        logger.debug("No invoice number provided for filtering.")
         return False
 
     def _select_check_box(self, element: WebElement):
