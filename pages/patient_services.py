@@ -49,13 +49,13 @@ class PatientServices(BasePage):
                 EC.presence_of_element_located(self.PATIENT_PROMPT)
             )
             patient_prompt.click()
-            time.sleep(.15)
+            time.sleep(.5)
             patient_prompt.send_keys(Keys.CONTROL, "a")
-            time.sleep(.15)
-            if 'P' in patient_id:
-                patient_id = str("-" +patient_id[1:])
-            patient_prompt.send_keys(patient_id)
-            self._click_magnifier()
+            time.sleep(.5)
+
+            patient_prompt.send_keys(f'-{patient_id}')
+            patient_prompt.send_keys(Keys.TAB)
+
             if not self._confirm_new_patient_selected(patient_id, patient_prompt):
                 logger.warning(f"Patient ID {patient_id} not selected correctly")
                 return False
