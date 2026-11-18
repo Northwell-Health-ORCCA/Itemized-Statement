@@ -60,7 +60,7 @@ class LoginPage(BasePage):
             logger.error("Login confirmation failed.")
             return False
 
-    def login(self, username: str, password: str) -> bool:
+    def login(self) -> bool:
         """
         Attempt to log in with the provided username and password.
 
