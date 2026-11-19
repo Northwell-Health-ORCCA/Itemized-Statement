@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import NamedTuple
 
+import pandas as pd
 from sqlalchemy import func, insert, or_, select
 from sqlalchemy.orm import aliased
 
@@ -248,6 +249,36 @@ def run_summary(session, run_id: str) -> dict[str, int]:
     )  
     return {status.value: count for status, count in rows}
 
+
+def run_output_file(session, file_name: str) -> pd.DataFrame:
+    query = session.query(Output).filter(Output.first_file_name == file_name).all()
+    df = pd.DataFrame([q.__dict__ for q in query])
+    rename = {
+        "first_file_name": "File Name",
+        "invoice_number": "Invoice Number",
+        "group_number": "Group Number",
+        "status": "Status",
+        "exception_type": "Exception Type",
+        "exception_reason": "Exception Reason",
+        "start_time": "Start Time",
+        "end_time": "End Time",
+        "attempt_count": "Attempt Count"
+    }
+    column_order = [
+        "File Name",
+        "Invoice Number",
+        "Group Number",
+        "Status",
+        "Exception Type",
+        "Exception Reason",
+        "Start Time",
+        "End Time",
+        "Attempt Count"
+    ]
+    df = df.drop('_sa_instance_state', axis=1)
+    df = df.rename(columns=rename)
+    df = df[column_order]
+    return df
 
 def reconcile(session) -> list[dict]:  
     """Rows where `outputs` disagrees with the latest row in `attempts`.  
