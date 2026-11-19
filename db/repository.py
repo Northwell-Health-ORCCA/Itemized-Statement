@@ -3,7 +3,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import NamedTuple
 
-from sqlalchemy import func, insert, select
+import pandas as pd
+from sqlalchemy import func, insert, or_, select
 from sqlalchemy.orm import aliased
 
 from .models import (
@@ -119,7 +120,7 @@ def register_input_file(session, csv_path: str | Path, run_id: str) -> int:
 # ---------- Work selection ----------
 
 def get_work_items(  
-    session, run_id: str, *, retry_failed_only: bool = True  
+    session, run_id: str, *, retry_failed_only: bool = False  
 ) -> list[WorkItem]:  
     """Invoices from this run's file still needing work.
 
@@ -130,17 +131,22 @@ def get_work_items(
     if run is None:  
         raise ValueError(f"No such run: {run_id}")
 
-    succeeded = select(Output.invoice_number).where(Output.status == ItemStatus.SUCCESS)
+    terminal = select(Output.invoice_number).where(  
+        or_(  
+            Output.status == ItemStatus.SUCCESS,  
+            Output.exception_type == ExceptionType.BUSINESS,  
+        )  
+    )  
 
     stmt = (  
         select(Input.invoice_number, Input.group_number)  
         .where(Input.file_name == run.file_name)  
-        .where(Input.invoice_number.not_in(succeeded))  
+        .where(Input.invoice_number.not_in(terminal))
         .order_by(Input.row_number)  
     )
 
     if retry_failed_only:  
-        failed = select(Output.invoice_number).where(Output.status.in_([ItemStatus.FAILED,ItemStatus.STAGED]))  
+        failed = select(Output.invoice_number).where(Output.status.in_([ItemStatus.FAILED]))  
         stmt = stmt.where(Input.invoice_number.in_(failed))
 
     return [WorkItem(inv, grp) for inv, grp in session.execute(stmt)]
@@ -160,7 +166,7 @@ def record_attempt(
     exception_reason: str | None = None,  
     group_number: str | None = None,  
 ) -> Attempt:  
-    """Append to `attempts` and sync `outputs` in one transaction.  
+    """Upsert into `attempts` by (invoice_number, run_id) and sync `outputs` in one transaction.  
     The only place either table is written."""  
     run = session.get(Run, run_id)  
     if run is None:  
@@ -186,23 +192,40 @@ def record_attempt(
         session.add(output)  
         session.flush()
 
-    n = output.attempt_count + 1
+    attempt = session.execute(
+        select(Attempt)
+        .where(
+            Attempt.invoice_number == invoice_number,
+            Attempt.run_id == run.run_id
+        )
+        .limit(1)
+    ).scalar_one_or_none()
 
-    attempt = Attempt(  
-        invoice_number=invoice_number,  
-        attempt_number=n,  
-        file_name=run.file_name,  
-        run_id=run.run_id,  
-        group_number=group_number,  
-        status=status,  
-        exception_type=exception_type,  
-        exception_reason=exception_reason,  
-        start_time=start_time,  
-        end_time=end_time,  
-    )  
-    session.add(attempt)
-
-    output.attempt_count = n  
+    if attempt is None:
+        n = output.attempt_count + 1
+        attempt = Attempt(  
+            invoice_number=invoice_number,  
+            attempt_number=n,  
+            file_name=run.file_name,  
+            run_id=run.run_id,  
+            group_number=group_number,  
+            status=status,  
+            exception_type=exception_type,  
+            exception_reason=exception_reason,  
+            start_time=start_time,  
+            end_time=end_time,  
+        )
+        session.add(attempt)
+        output.attempt_count = n
+    else:
+        attempt.file_name = run.file_name
+        attempt.group_number = group_number
+        attempt.status = status
+        attempt.exception_type = exception_type
+        attempt.exception_reason = exception_reason
+        attempt.start_time = start_time
+        attempt.end_time = end_time
+        
     output.status = status  
     output.exception_type = exception_type  
     output.exception_reason = exception_reason  
@@ -226,6 +249,36 @@ def run_summary(session, run_id: str) -> dict[str, int]:
     )  
     return {status.value: count for status, count in rows}
 
+
+def run_output_file(session, file_name: str) -> pd.DataFrame:
+    query = session.query(Output).filter(Output.first_file_name == file_name).all()
+    df = pd.DataFrame([q.__dict__ for q in query])
+    rename = {
+        "first_file_name": "File Name",
+        "invoice_number": "Invoice Number",
+        "group_number": "Group Number",
+        "status": "Status",
+        "exception_type": "Exception Type",
+        "exception_reason": "Exception Reason",
+        "start_time": "Start Time",
+        "end_time": "End Time",
+        "attempt_count": "Attempt Count"
+    }
+    column_order = [
+        "File Name",
+        "Invoice Number",
+        "Group Number",
+        "Status",
+        "Exception Type",
+        "Exception Reason",
+        "Start Time",
+        "End Time",
+        "Attempt Count"
+    ]
+    df = df.drop('_sa_instance_state', axis=1)
+    df = df.rename(columns=rename)
+    df = df[column_order]
+    return df
 
 def reconcile(session) -> list[dict]:  
     """Rows where `outputs` disagrees with the latest row in `attempts`.  

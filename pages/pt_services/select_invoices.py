@@ -8,6 +8,8 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+from db.exceptions import ApplicationException, BusinessException
+
 
 class SelectInvoices:
     def __init__(self, driver):
@@ -47,27 +49,34 @@ class SelectInvoices:
             logger.error(f"Action code '{action_code}' not found in base action codes.")
             raise ValueError(f"Action code '{action_code}' not found in base action codes.")
 
-    def _confirm_invoice_filtered(self, invoice_number=None):
+    def _confirm_invoice_filtered(self, invoice_number):
         locator_tuple = (
             By.CSS_SELECTOR,
             "#rcm-dbms-selector > div > div > div.ag-root-wrapper.ag-ltr.ag-layout-normal > div.ag-root-wrapper-body.ag-focus-managed.ag-layout-normal > div.ag-root.ag-unselectable.ag-layout-normal.ag-body-horizontal-content-no-gap > div.ag-body.ag-layout-normal > div.ag-body-viewport.ag-row-animation.ag-layout-normal > div.ag-pinned-left-cols-container > div.ag-row-odd.ag-row.ag-row-level-0.ag-row-position-absolute.ag-row-last.ag-row-not-inline-editing.ag-row-focus"
         )
-        inv_row_element = WebDriverWait(self.driver, 3).until(
+        
+        # handles invoices that are in a different group and dont appear in the filtered list
+        try:
+            inv_row_element = WebDriverWait(self.driver, 3).until(
             EC.presence_of_element_located(locator_tuple)
         )
+        except TimeoutException:
+            logger.warning("Invoice not found within group after filtering.")
+            raise BusinessException("Invoice row not found within group.")
+        
         logger.debug("Parent div for invoice filtering located.")
-        if invoice_number:
-            try:
-                inv_num_element = inv_row_element.find_element(  
-                    By.CSS_SELECTOR,  
-                    "#rcm-dbms-selector > div > div > div.ag-root-wrapper.ag-ltr.ag-layout-normal > div.ag-root-wrapper-body.ag-focus-managed.ag-layout-normal > div.ag-root.ag-unselectable.ag-layout-normal.ag-body-horizontal-content-no-gap > div.ag-body.ag-layout-normal > div.ag-body-viewport.ag-row-animation.ag-layout-normal > div.ag-pinned-left-cols-container > div.ag-row-odd.ag-row.ag-row-level-0.ag-row-position-absolute.ag-row-last.ag-row-not-inline-editing.ag-row-focus > div.ag-cell.ag-cell-not-inline-editing.ag-cell-normal-height.ag-cell-last-left-pinned.ag-cell-value"  
-                )
-                if inv_num_element and inv_num_element.text.__contains__(invoice_number):
-                    logger.debug(f"Invoice row for '{invoice_number}' found.")
-                    return inv_row_element
-            except NoSuchElementException:
-                logger.debug(f"Invoice row for '{invoice_number}' not found.")
-                return False
+        
+        try:
+            inv_num_element = inv_row_element.find_element(  
+                By.CSS_SELECTOR,  
+                "#rcm-dbms-selector > div > div > div.ag-root-wrapper.ag-ltr.ag-layout-normal > div.ag-root-wrapper-body.ag-focus-managed.ag-layout-normal > div.ag-root.ag-unselectable.ag-layout-normal.ag-body-horizontal-content-no-gap > div.ag-body.ag-layout-normal > div.ag-body-viewport.ag-row-animation.ag-layout-normal > div.ag-pinned-left-cols-container > div.ag-row-odd.ag-row.ag-row-level-0.ag-row-position-absolute.ag-row-last.ag-row-not-inline-editing.ag-row-focus > div.ag-cell.ag-cell-not-inline-editing.ag-cell-normal-height.ag-cell-last-left-pinned.ag-cell-value"  
+            )
+            if inv_num_element and inv_num_element.text.__contains__(invoice_number):
+                logger.debug(f"Invoice row for '{invoice_number}' found.")
+                return inv_row_element
+        except NoSuchElementException:
+            logger.debug(f"Invoice row for '{invoice_number}' not found.")
+            raise ApplicationException(f"Invoice row for '{invoice_number}' not found.")
         logger.debug("No invoice number provided for filtering.")
         return False
 

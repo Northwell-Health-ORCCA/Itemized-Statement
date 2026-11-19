@@ -14,6 +14,7 @@ from db.repository import (
     get_work_items,
     record_attempt,
     register_input_file,
+    run_output_file,
     run_summary,
     start_run,
 )
@@ -122,7 +123,9 @@ def main(file_date: str, retry_failed_only: bool = True) -> None:
         # Close the run after processing all invoices
         with session_scope() as session:  
             complete_run(session, run_id, failure_reason=fatal) 
-            logger.success(run_summary(session, run_id))  
+            df = run_output_file(session, file_name)
+            # TODO: change output location
+            df.to_excel(f"./UAT/{file_name}_output.xlsx", index=False)
             
 if __name__ == "__main__":
     load_dotenv()
