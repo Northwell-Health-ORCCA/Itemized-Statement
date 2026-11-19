@@ -36,8 +36,7 @@ def main(file_date: str, retry_failed_only: bool = False) -> None:
         raise ValueError("file_date must be in YYYYMMDD format")
     
     file_name = f'{file_date}_PAANS_BOT_v2.csv'
-    # file_path = '//NASDATA201/SHAREDATA/MV-RCR01/SHARED/RC Experience/DO NOT REMOVE - HCx Ontario Reports'
-    file_path = './UAT'
+    file_path = '//NASDATA201/SHAREDATA/MV-RCR01/SHARED/RC Experience/DO NOT REMOVE - HCx Ontario Reports'
     csv_path = os.path.join(file_path, file_name)
     logger.debug(f"Input path exists: {os.path.exists(csv_path)}")
 
