@@ -81,7 +81,7 @@ class PatientServices(BasePage):
             return 
         except TimeoutException:
             logger.error("Timeout while trying to select Patient Inquiry")
-            return 
+            raise ApplicationException("Timeout while trying to select Patient Inquiry")
         
     def _select_invoice_list(self, group_number: str = "3"):
         try:
@@ -103,6 +103,7 @@ class PatientServices(BasePage):
 
         except TimeoutException:
             logger.error("Timeout while trying to select Invoice List")
+            raise ApplicationException("Timeout while trying to select Invoice List")
 
     def navigate_to_patient_inquiry(self, patient_id: str, group_number: str = "3"):
         self._enter_patient_prompt(patient_id)

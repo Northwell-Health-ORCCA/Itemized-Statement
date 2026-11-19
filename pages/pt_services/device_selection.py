@@ -17,7 +17,7 @@ class DeviceSelection:
 
     def __init__(self, driver):  
         load_dotenv()  
-        device_name = os.getenv('DEVICE_NAME')
+        device_name = os.getenv('PRINTER_NAME', "")
         self.driver = driver  
         self.device_name = '' if not device_name else device_name
 
@@ -26,7 +26,14 @@ class DeviceSelection:
         device_input_field = WebDriverWait(self.driver, 3).until(  
             EC.presence_of_element_located(locator_tuple)  
         )  
-        logger.debug(f"Device name input located for '{device_name}'.")  
+        logger.debug(f"Device name input located for '{device_name}'.")
+        # get current value of field
+        current_value = device_input_field.get_attribute('value')
+        logger.debug(f"Current device name in input field: '{current_value}'")
+        if current_value == device_name:
+            logger.debug("Device name is already set correctly.")
+            return
+        # TODO: clear() method not working, change to ctrl + a
         device_input_field.clear()  
         device_input_field.send_keys(device_name)
         device_input_field.send_keys(Keys.TAB)  
