@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import NamedTuple
 
-from sqlalchemy import func, insert, select
+from sqlalchemy import func, insert, or_, select
 from sqlalchemy.orm import aliased
 
 from .models import (
@@ -119,7 +119,7 @@ def register_input_file(session, csv_path: str | Path, run_id: str) -> int:
 # ---------- Work selection ----------
 
 def get_work_items(  
-    session, run_id: str, *, retry_failed_only: bool = True  
+    session, run_id: str, *, retry_failed_only: bool = False  
 ) -> list[WorkItem]:  
     """Invoices from this run's file still needing work.
 
@@ -130,17 +130,22 @@ def get_work_items(
     if run is None:  
         raise ValueError(f"No such run: {run_id}")
 
-    succeeded = select(Output.invoice_number).where(Output.status == ItemStatus.SUCCESS)
+    terminal = select(Output.invoice_number).where(  
+        or_(  
+            Output.status == ItemStatus.SUCCESS,  
+            Output.exception_type == ExceptionType.BUSINESS,  
+        )  
+    )  
 
     stmt = (  
         select(Input.invoice_number, Input.group_number)  
         .where(Input.file_name == run.file_name)  
-        .where(Input.invoice_number.not_in(succeeded))  
+        .where(Input.invoice_number.not_in(terminal))
         .order_by(Input.row_number)  
     )
 
     if retry_failed_only:  
-        failed = select(Output.invoice_number).where(Output.status.in_([ItemStatus.FAILED,ItemStatus.STAGED]))  
+        failed = select(Output.invoice_number).where(Output.status.in_([ItemStatus.FAILED]))  
         stmt = stmt.where(Input.invoice_number.in_(failed))
 
     return [WorkItem(inv, grp) for inv, grp in session.execute(stmt)]
