@@ -46,7 +46,7 @@ def test_record_attempt_creates_output_with_first_seen_provenance(session):
 	assert output.group_number == "G1"
 
 
-def test_record_attempt_increments_attempt_number_and_updates_output(session):
+def test_record_attempt_overwrites_same_run_attempt_and_updates_output(session):
 	run = repository.create_run(session, "retry.csv")
 	_seed_input(session, run, "INV200")
 
@@ -69,10 +69,10 @@ def test_record_attempt_increments_attempt_number_and_updates_output(session):
 		status=ItemStatus.SUCCESS,
 	)
 
-	assert (a1.attempt_number, a2.attempt_number) == (1, 2)
+	assert (a1.attempt_number, a2.attempt_number) == (1, 1)
 
 	output = session.get(Output, "INV200")
-	assert output.attempt_count == 2
+	assert output.attempt_count == 1
 	assert output.status is ItemStatus.SUCCESS
 	assert output.exception_type is None
 	assert output.exception_reason is None
@@ -81,7 +81,10 @@ def test_record_attempt_increments_attempt_number_and_updates_output(session):
 	attempts = session.scalars(
 		select(repository.Attempt).where(repository.Attempt.invoice_number == "INV200").order_by(repository.Attempt.attempt_number)
 	).all()
-	assert [a.status for a in attempts] == [ItemStatus.FAILED, ItemStatus.SUCCESS]
+	assert len(attempts) == 1
+	assert attempts[0].attempt_number == 1
+	assert attempts[0].status is ItemStatus.SUCCESS
+	assert attempts[0].group_number == "G2"
 
 
 def test_record_attempt_raises_for_unknown_run_id(session):

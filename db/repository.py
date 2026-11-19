@@ -186,17 +186,16 @@ def record_attempt(
         session.add(output)  
         session.flush()
 
-    staged_attempt = session.execute(
+    attempt = session.execute(
         select(Attempt)
         .where(
             Attempt.invoice_number == invoice_number,
-            Attempt.run_id == run.run_id,
-            Attempt.status == ItemStatus.STAGED
+            Attempt.run_id == run.run_id
         )
         .limit(1)
     ).scalar_one_or_none()
 
-    if staged_attempt is None:
+    if attempt is None:
         n = output.attempt_count + 1
         attempt = Attempt(  
             invoice_number=invoice_number,  
@@ -213,14 +212,14 @@ def record_attempt(
         session.add(attempt)
         output.attempt_count = n
     else:
-        staged_attempt.file_name = run.file_name
-        staged_attempt.group_number = group_number
-        staged_attempt.status = status
-        staged_attempt.exception_type = exception_type
-        staged_attempt.exception_reason = exception_reason
-        staged_attempt.start_time = start_time
-        staged_attempt.end_time = end_time
-
+        attempt.file_name = run.file_name
+        attempt.group_number = group_number
+        attempt.status = status
+        attempt.exception_type = exception_type
+        attempt.exception_reason = exception_reason
+        attempt.start_time = start_time
+        attempt.end_time = end_time
+        
     output.status = status  
     output.exception_type = exception_type  
     output.exception_reason = exception_reason  
