@@ -1,6 +1,6 @@
 [project]
 name = "itemized-statement"
-version = "0.1.0"
+version = "1.0.0"
 description = "Ingests daily input file and prints the itemized statements in IDX."
 readme = "README.md"
 requires-python = ">=3.13"
