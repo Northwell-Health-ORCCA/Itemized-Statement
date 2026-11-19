@@ -1,11 +1,14 @@
 import time
 
 from loguru import logger
+from selenium.common import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+
+from db.exceptions import ApplicationException, BusinessException
 
 
 class BasePage:
@@ -118,3 +121,40 @@ class BasePage:
         actions.send_keys(Keys.ENTER)
         actions.perform()
         logger.success(f"Option changed to '{target_name}'.")
+
+    def _handle_deceased_indicator(self):
+            """
+            Handles the deceased indicator popup if it is detected.
+            Raises ApplicationException if the close button is not found but the popup is present.
+
+            This method is needed in the following points in the workflow: 
+            - When performing the initial invoice search in Patient Services
+            - When returning to the Patient Services page after printing a statement
+            """
+            msg_box_tuple = (By.ID, "rcmMessagebox")
+            popup_element = WebDriverWait(self.driver, 5).until(EC.presence_of_element_located(msg_box_tuple))
+            detected = self._detect_deceased_indicator(popup_element)
+            if detected:
+                logger.info("Handling deceased indicator.")
+                if popup_element:
+                    try:
+                        close_button = popup_element.find_element(By.ID, "modalButtonOk")
+                        close_button.click()
+                        logger.info("Closed deceased indicator popup.")
+                    except NoSuchElementException:
+                        logger.warning("Close button for deceased indicator not found.")
+                        raise ApplicationException('Close button for deceased indicator expected but not found')
+            else:
+                logger.info("No deceased indicator detected.")
+
+    def _detect_deceased_indicator(self, popup_element) -> bool:
+        try:               
+            time.sleep(0.5)
+            deceased_element = popup_element.find_element(By.ID, "rcmMessageboxText")
+            if 'deceased' in deceased_element.text.lower():
+                logger.info("Deceased indicator detected.")
+                return True
+        except (NoSuchElementException, TimeoutException):
+            logger.info("Deceased indicator not detected.")
+            return False
+        return False
