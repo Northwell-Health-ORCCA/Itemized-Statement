@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 from loguru import logger
 from tqdm import tqdm
 
@@ -21,12 +21,35 @@ from IDXClient import IDXClient
 from utils.logging import setup_logging, setup_screenshots
 from workflow import process_invoice, reset
 
+import argparse  
+import sys
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:  
+    parser = argparse.ArgumentParser(  
+        prog="itemized-statements",  
+        description="This process is a replacement for the Sutherland RPA bot that printed itemized statements from IDX.",  
+    )  
+    parser.add_argument(  
+        "-d", "--file-date",  
+        default=datetime.today().strftime("%Y%m%d"),  
+        help="Input file date in YYYYMMDD format (default: today)",  
+    )  
+    parser.add_argument(  
+        "-r", "--retry-failed-only",  
+        action="store_true",  
+        help="Only reprocess items that failed in a previous run",  
+    )  
+    parser.add_argument(  
+        "--dry-run",  
+        action="store_true",  
+        help="Route DB writes to STAGING_DATABASE_URL and pass dry_run to the workflow",  
+    )  
+    return parser.parse_args(argv)
 
 def main(file_date: str, 
          retry_failed_only: bool = False,
          dry_run: bool = False) -> None:
-    load_dotenv()
-
     default_database_url = os.getenv("DATABASE_URL", "sqlite:///itemized_statements.db")
 
     if dry_run:
@@ -157,11 +180,43 @@ def main(file_date: str,
         if dry_run:
             configure_database(default_database_url)
             logger.info("dry_run=True: database routing restored to DATABASE_URL")
-            
+
+def cli(argv: list[str] | None = None) -> None:  
+    load_dotenv(find_dotenv(usecwd=True))  
+    args = parse_args(argv)
+
+    setup_logging("./logs")  
+    setup_screenshots("./logs/screenshots")
+
+    try:  
+        main(  
+            file_date=args.file_date,  
+            retry_failed_only=args.retry_failed_only,  
+            dry_run=args.dry_run,  
+        )  
+    except BusinessException as e:  
+        logger.warning(f"Business exception: {e}")  
+        sys.exit(2)  
+    except Exception:  
+        logger.exception("Run failed")  
+        sys.exit(1)
+  
 if __name__ == "__main__":
     load_dotenv()
+    args = parse_args()
     
     setup_logging('./logs')
     setup_screenshots('./logs/screenshots')
-    today = datetime.today().strftime('%Y%m%d')
-    main(today)
+    
+    try:  
+        main(  
+            file_date=args.file_date,  
+            retry_failed_only=args.retry_failed_only,  
+            dry_run=args.dry_run,  
+        )  
+    except BusinessException as e:  
+        logger.warning(f"Business exception: {e}")  
+        sys.exit(2)  
+    except Exception:  
+        logger.exception("Run failed")  
+        sys.exit(1)  
