@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]  
 name = "itemized-statement"  
-version = "1.2.0"  
+version = "1.2.1"  
 description = "Ingests daily input file and prints the itemized statements in IDX."  
 readme = "README.md"  
 requires-python = ">=3.13"  
@@ -55,7 +55,7 @@ sequence = [
 ]  
 
 [tool.bumpversion]  
-current_version = "1.2.0"  
+current_version = "1.2.1"  
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"  
 serialize = ["{major}.{minor}.{patch}"]  
 search = "{current_version}"  
