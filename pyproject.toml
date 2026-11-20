@@ -43,24 +43,26 @@ pythonpath = ["."]
 addopts = "-q --strict-markers"  
 
 [tool.poe.tasks]  
-bump = "bump-my-version bump"  
-push = ["_git_push_all", "_github_release"]
+# Bumps the version (e.g., 'uv run poe bump patch')  
+bump = "bump-my-version bump"
 
-# Hidden sub-tasks used by the 'push' sequence  
-[tool.poe.tasks._git_push_all]  
+# Pushes code and tags to GitHub  
+[tool.poe.tasks.push]  
 shell = "git push && git push --tags"
 
+# Creates the GitHub release using the latest tag  
 [tool.poe.tasks._github_release]  
 shell = """  
-TAG=$(git describe --tags --abbrev=0)  
-gh release create "$TAG" --generate-notes  
+for /f "tokens=*" %%i in ('git describe --tags --abbrev=0') do set TAG=%%i  
+gh release create %TAG% --generate-notes  
 """
-  
-# Usage: uv run poe release patch (or minor, major)  
+
+# The composite release task: bump -> push -> release  
 release = [  
     { ref = "bump" },  
-    { ref = "push" }  
-] 
+    { ref = "push" },  
+    { ref = "_github_release" }  
+]  
 
 [tool.bumpversion]  
 current_version = "1.2.0"  
