@@ -104,6 +104,8 @@ def main(file_date: str, retry_failed_only: bool = False) -> None:
                 status = ItemStatus.FAILED
                 exception_type = ExceptionType.PYTHON
                 exception_reason = f"{type(e).__name__}: {e}"[:4000]
+                
+                reset(idx_client=idx_client)
 
             with session_scope() as session:  
                 record_attempt(session, run_id=run_id,  
