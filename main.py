@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from loguru import logger
 from tqdm import tqdm
 
-from db.base import session_scope
+from db.base import configure_database, session_scope
 from db.exceptions import ApplicationException, BusinessException
 from db.models import ExceptionType, ItemStatus, Run, now
 from db.repository import (
@@ -27,6 +27,15 @@ def main(file_date: str,
          retry_failed_only: bool = False,
          dry_run: bool = False) -> None:
     load_dotenv()
+
+    default_database_url = os.getenv("DATABASE_URL", "sqlite:///itemized_statements.db")
+
+    if dry_run:
+        staging_database_url = os.getenv("STAGING_DATABASE_URL")
+        if not staging_database_url:
+            raise ValueError("dry_run=True requires STAGING_DATABASE_URL to be set")
+        configure_database(staging_database_url)
+        logger.info("dry_run=True: database routed to STAGING_DATABASE_URL")
     
     # check that file_date is in YYYYMMDD format
     if not file_date.isdigit() or len(file_date) != 8:
@@ -145,6 +154,10 @@ def main(file_date: str,
 
             outputs_dir = '//NT2KWB972SRV03/SHAREDATA/CPP-Data/CBO Westbury Managers/LEADERSHIP/Bot Folder/Part B/Itemized Statements'
             df.to_excel(f"./{outputs_dir}/Transaction Report - {file_date}.xlsx", index=False)
+
+        if dry_run:
+            configure_database(default_database_url)
+            logger.info("dry_run=True: database routing restored to DATABASE_URL")
             
 if __name__ == "__main__":
     load_dotenv()
