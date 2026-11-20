@@ -98,6 +98,7 @@ uv run itemized-statements [-d FILE_DATE] [-r] [--dry-run]
 | -d, --file-date | Input file date in YYYYMMDD format. The bot reads {FILE_DATE}_PAANS_BOT_v2.csv. | Today's date |
 | -r, --retry-failed-only | Only reprocess invoices that failed in a previous run. | False |
 | --dry-run | Writes to the staging database and runs the workflow without actuall demanding the statement. | False |
+| --headless | Runs seleneium in headless mode | False |
 | -h, --help | Show the help message. |  |
 
 

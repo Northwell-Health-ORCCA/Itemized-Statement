@@ -36,6 +36,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Input file date in YYYYMMDD format (default: today)",  
     )  
     parser.add_argument(  
+        "--headless",  
+        action="store_true",  
+        help="Run the IDX client in headless mode",  
+    )  
+    parser.add_argument(  
         "-r", "--retry-failed-only",  
         action="store_true",  
         help="Only reprocess items that failed in a previous run",  
@@ -49,6 +54,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(file_date: str, 
          retry_failed_only: bool = False,
+         headless: bool = True,
          dry_run: bool = False) -> None:
     default_database_url = os.getenv("DATABASE_URL", "sqlite:///itemized_statements.db")
 
@@ -101,7 +107,8 @@ def main(file_date: str,
         
         idx_client = IDXClient(
             username = os.environ['IDX_USERNAME'],
-            password = os.environ['IDX_PASSWORD']
+            password = os.environ['IDX_PASSWORD'],
+            headless=headless
         )
         
         idx_client.login_page.login()
@@ -193,7 +200,8 @@ def cli(argv: list[str] | None = None) -> None:
         main(  
             file_date=args.file_date,  
             retry_failed_only=args.retry_failed_only,  
-            dry_run=args.dry_run,  
+            dry_run=args.dry_run,
+            headless=args.headless 
         )  
     except BusinessException as e:  
         logger.warning(f"Business exception: {e}")  

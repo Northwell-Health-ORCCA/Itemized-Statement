@@ -12,7 +12,7 @@ call "%VENV_PATH%\Scripts\activate.bat"
 :TRY_LOOP  
 echo [%DATE% %TIME%] Attempt %ATTEMPT% of %MAX_TRIES%: Running itemized-statements...
 
-uv run itemized-statements
+uv run itemized-statements --headless
 
 :: Check if it succeeded (Exit code 0)  
 IF %ERRORLEVEL% EQU 0 (  
