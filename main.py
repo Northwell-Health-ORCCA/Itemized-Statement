@@ -15,7 +15,6 @@ from db.repository import (
     record_attempt,
     register_input_file,
     run_output_file,
-    run_summary,
     start_run,
 )
 from IDXClient import IDXClient
@@ -153,7 +152,7 @@ def main(file_date: str,
             df = run_output_file(session, file_name)
 
             outputs_dir = '//NT2KWB972SRV03/SHAREDATA/CPP-Data/CBO Westbury Managers/LEADERSHIP/Bot Folder/Part B/Itemized Statements'
-            df.to_excel(f"./{outputs_dir}/Transaction Report - {file_date}.xlsx", index=False)
+            df.to_excel(f"{outputs_dir}/Transaction Report - {file_date}.xlsx", index=False)
 
         if dry_run:
             configure_database(default_database_url)
