@@ -26,7 +26,7 @@ class PatientServices(BasePage):
     INVOICE_LIST_KEY = (By.ID, "selectorActionCodeI")
     
     def __init__(self, driver):
-        self.driver = driver
+        super().__init__(driver)
         
         self.demand_statement = DemandStatement(self.driver)
         self.device_selection = DeviceSelection(self.driver)
@@ -57,10 +57,8 @@ class PatientServices(BasePage):
 
             patient_prompt.send_keys(f'-{patient_id}')
             patient_prompt.send_keys(Keys.TAB)
-
-            # if not self._confirm_new_patient_selected(patient_id, patient_prompt):
-            #     logger.warning(f"Patient ID {patient_id} not selected correctly")
-            #     raise ApplicationException(f"Patient ID {patient_id} not selected correctly")
+            
+            self.modal.close_modal()
             return
         except TimeoutException:
             logger.error(f"Timeout while trying to select Patient ID {patient_id}")
