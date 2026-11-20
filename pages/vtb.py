@@ -14,7 +14,7 @@ class VTBPage(BasePage):
         'Patient Services': ((By.ID, "lblLabel62"), "Patient Services")}
     
     def __init__(self, driver):
-        self.driver = driver
+        super().__init__(driver)
 
     def _get_vtb_options(self) -> dict:
         options = {}
@@ -69,7 +69,7 @@ class VTBPage(BasePage):
         else:
             raise ValueError(f"Option '{option_text}' not found in VTB options.")
 
-        
+        self.modal.close_modal()
         h_text = self.HEADER_DICT[option_text][1]
         self._confirm_navigation(option_text, h_text)
         time.sleep(1)

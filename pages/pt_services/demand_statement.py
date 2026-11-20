@@ -9,6 +9,8 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+from db.exceptions import ApplicationException
+
 
 class DemandStatement:
     STMT_FORMAT_ELEMENT = (By.ID, 'sAf12')
@@ -103,3 +105,4 @@ class DemandStatement:
 
         except Exception as e:  # noqa: BLE001
             logger.error(f"Error while processing demand statement: {e}")
+            raise ApplicationException(f"Error while processing demand statement: {e}")

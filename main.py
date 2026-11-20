@@ -23,7 +23,9 @@ from utils.logging import setup_logging
 from workflow import process_invoice, reset
 
 
-def main(file_date: str, retry_failed_only: bool = False) -> None:
+def main(file_date: str, 
+         retry_failed_only: bool = False,
+         dry_run: bool = False) -> None:
     load_dotenv()
     
     # check that file_date is in YYYYMMDD format
@@ -81,7 +83,8 @@ def main(file_date: str, retry_failed_only: bool = False) -> None:
             try:  
                 process_invoice(idx_client, 
                                 item.invoice_number, 
-                                item.group_number)
+                                item.group_number,
+                                dry_run)
             
                 end_time = now()
                 status: ItemStatus = ItemStatus.SUCCESS

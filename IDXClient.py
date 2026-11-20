@@ -7,6 +7,7 @@ from pages.login import LoginPage
 from pages.settings import SettingsPage
 from pages.vtb import VTBPage
 from pages.patient_services import PatientServices
+from pages.modals.modal import Modal
 
 class IDXClient:
     
@@ -19,7 +20,6 @@ class IDXClient:
         self.settings_page = SettingsPage(self.driver)
         self.vtb_page = VTBPage(self.driver)
         self.patient_services = PatientServices(self.driver)
-
         
     def _create_chrome_driver(self) -> webdriver.Chrome:
         """Create and configure Chrome WebDriver based on environment settings.
