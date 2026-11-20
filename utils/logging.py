@@ -2,6 +2,15 @@ from pathlib import Path
 from loguru import logger
 from datetime import datetime
 
+def setup_screenshots(screenshots_folder_path: Path | str) -> None:
+    """Create a directory for storing screenshots."""
+    date = datetime.now().strftime("%Y-%m-%d")
+    
+    if isinstance(screenshots_folder_path, str):
+        screenshots_folder_path = Path(screenshots_folder_path)
+    screenshots_folder_path = screenshots_folder_path / date
+    screenshots_folder_path.mkdir(parents=True, exist_ok=True)
+
 def setup_logging(log_folder_path: Path | str) -> None:
     """Configure loguru logger with file outputs for debug and info levels.
     
@@ -11,9 +20,8 @@ def setup_logging(log_folder_path: Path | str) -> None:
     if isinstance(log_folder_path, str):
         log_folder_path = Path(log_folder_path)
     log_folder_path.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y-%m-%d %H %M")
-    debug_path = log_folder_path / f"debug_{timestamp}.log"
-    info_path = log_folder_path / f"info_{timestamp}.log"
+    debug_path = log_folder_path / "debug_{time:YYYYMMDD}.log"
+    info_path = log_folder_path / "info_{time:YYYYMMDD}.log"
     
     logger.remove()
     logger.add(
@@ -25,6 +33,7 @@ def setup_logging(log_folder_path: Path | str) -> None:
         retention="3 days",
         compression="zip"
     )
+    
     logger.add(
         info_path,
         rotation="5 MB",

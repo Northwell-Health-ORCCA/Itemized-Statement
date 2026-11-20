@@ -19,7 +19,7 @@ from db.repository import (
     start_run,
 )
 from IDXClient import IDXClient
-from utils.logging import setup_logging
+from utils.logging import setup_logging, setup_screenshots
 from workflow import process_invoice, reset
 
 
@@ -97,6 +97,11 @@ def main(file_date: str,
                 exception_reason = str(e)[:4000]  
             except ApplicationException as e:  
                 end_time = now()
+                
+                # take a screenshot if running headless
+                if idx_client.headless:
+                    idx_client.driver.save_screenshot(f"./logs/screenshots/{end_time.strftime('%Y%m%d')}/{end_time.strftime('%Y%m%d_%H%M%S')} - {item.invoice_number}.png")
+                
                 status = ItemStatus.FAILED
                 exception_type = ExceptionType.APPLICATION
                 exception_reason = f"{type(e).__name__}: {e}"[:4000]
@@ -104,6 +109,11 @@ def main(file_date: str,
                 reset(idx_client=idx_client)
             except Exception as e:  # noqa: BLE001
                 end_time = now()
+                
+                # take a screenshot if running headless
+                if idx_client.headless:
+                    idx_client.driver.save_screenshot(f"./logs/screenshots/{end_time.strftime('%Y%m%d')}/{end_time.strftime('%Y%m%d_%H%M%S')} - {item.invoice_number}.png")
+                
                 status = ItemStatus.FAILED
                 exception_type = ExceptionType.PYTHON
                 exception_reason = f"{type(e).__name__}: {e}"[:4000]
@@ -122,19 +132,24 @@ def main(file_date: str,
 
     except Exception as e:  
         # error happens outside of individual invoice processing and is likely not linked to a specific invoice
-        fatal = f"{type(e).__name__}: {e}"  
+        fatal = f"{type(e).__name__}: {e}"
+        end_time = now()
+
+        idx_client.driver.save_screenshot(f"./logs/screenshots/{end_time.strftime('%Y%m%d')}/{end_time.strftime('%Y%m%d_%H%M%S')} - fatal error.png")
         raise  
     finally:  
         # Close the run after processing all invoices
         with session_scope() as session:  
             complete_run(session, run_id, failure_reason=fatal) 
             df = run_output_file(session, file_name)
-            # TODO: change output location
-            df.to_excel(f"./UAT/{file_name}_output.xlsx", index=False)
+
+            outputs_dir = '//NT2KWB972SRV03/SHAREDATA/CPP-Data/CBO Westbury Managers/LEADERSHIP/Bot Folder/Part B/Itemized Statements'
+            df.to_excel(f"./{outputs_dir}/Transaction Report - {file_date}.xlsx", index=False)
             
 if __name__ == "__main__":
     load_dotenv()
     
     setup_logging('./logs')
-    today = datetime.today().strftime('%Y%m%d')  # noqa: DTZ002
+    setup_screenshots('./logs/screenshots')
+    today = datetime.today().strftime('%Y%m%d')
     main(today)

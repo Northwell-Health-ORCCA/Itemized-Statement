@@ -261,9 +261,9 @@ def run_output_file(session, file_name: str) -> pd.DataFrame:
         "exception_type": "Exception Type",
         "exception_reason": "Exception Reason",
         "start_time": "Start Time",
-        "end_time": "End Time",
-        "attempt_count": "Attempt Count"
+        "end_time": "End Time"
     }
+    
     column_order = [
         "File Name",
         "Invoice Number",
@@ -272,8 +272,7 @@ def run_output_file(session, file_name: str) -> pd.DataFrame:
         "Exception Type",
         "Exception Reason",
         "Start Time",
-        "End Time",
-        "Attempt Count"
+        "End Time"
     ]
     df = df.drop('_sa_instance_state', axis=1)
     df = df.rename(columns=rename)
