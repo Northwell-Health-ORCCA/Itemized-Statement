@@ -33,4 +33,4 @@ def process_invoice(idx_client: IDXClient,invoice_number: str, group_number: str
     # select device and save output if printed to new screen
     idx_client.patient_services.device_selection.select_device()
     idx_client.vtb_page.select_vtb_option("Patient Services")
-    idx_client.vtb_page._handle_deceased_indicator()
+    # idx_client.vtb_page._handle_deceased_indicator()
