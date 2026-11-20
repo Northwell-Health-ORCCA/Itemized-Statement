@@ -2,41 +2,38 @@
 requires = ["setuptools>=68"]  
 build-backend = "setuptools.build_meta"
 
-[project]
-name = "itemized-statement"
-version = "1.2.0"
-description = "Ingests daily input file and prints the itemized statements in IDX."
-readme = "README.md"
-requires-python = ">=3.13"
-dependencies = [
-    "datetime>=6.0",
-    "ipykernel>=7.4.0",
-    "loguru>=0.8.0",
-    "pandas>=3.1.1",
-    "python-dotenv>=1.2.4",
-    "selenium>=4.52.0",
-    "sqlalchemy>=2.1.8",
-    "sqlmodel>=0.0.50",
-    "tqdm>=4.70.1",
-    "alembic>=1.20.1",
-    "pytest>=9.2.0",
-    "python-dotenv>=1.2.4",
-    "sqlalchemy>=2.1.8",
-    "tqdm>=4.70.1",
-    "openpyxl>=3.1.5",
+[project]  
+name = "itemized-statement"  
+version = "1.2.0"  
+description = "Ingests daily input file and prints the itemized statements in IDX."  
+readme = "README.md"  
+requires-python = ">=3.13"  
+dependencies = [  
+    "alembic>=1.20.1",  
+    "loguru>=0.8.0",  
+    "openpyxl>=3.1.5",  
+    "pandas>=3.1.1",  
+    "python-dotenv>=1.2.4",  
+    "selenium>=4.52.0",  
+    "sqlalchemy>=2.1.8",  
+    "sqlmodel>=0.0.50",  
+    "tqdm>=4.70.1",  
 ]
 
-[dependency-groups]
-dev = [
-    "ipykernel>=7.4.0",
+[dependency-groups]  
+dev = [  
+    "ipykernel>=7.4.0",  
+    "pytest>=9.2.0",  
 ]
 
 [project.scripts]  
 itemized-statements = "main:cli"
 
 [tool.setuptools]  
-packages = ["db", "utils"]  
-py-modules = ["main", "workflow", "IDXClient"]  
+py-modules = ["main", "workflow", "IDXClient"]
+
+[tool.setuptools.packages.find]  
+include = ["db*", "utils*", "pages*"]
 
 [tool.pytest.ini_options]  
 testpaths = ["tests"]  
