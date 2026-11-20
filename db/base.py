@@ -26,6 +26,34 @@ engine = create_engine(
 
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
+
+def configure_database(database_url: str) -> None:
+    """Rebind engine/session factory at runtime.
+
+    Useful for routing dry-run executions to a staging database while keeping
+    the normal default from DATABASE_URL.
+    """
+    global DATABASE_URL, engine, SessionLocal
+
+    if not database_url:
+        raise ValueError("database_url must be a non-empty string")
+
+    previous_engine = engine
+
+    DATABASE_URL = database_url
+    engine = create_engine(
+        DATABASE_URL,
+        echo=False,
+        pool_pre_ping=True,
+    )
+    SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+
+    try:
+        previous_engine.dispose()
+    except Exception:
+        # Best effort cleanup; do not block reconfiguration.
+        pass
+
 @contextmanager  
 def session_scope():  
     """Transactional scope. Commits on success, rolls back on exception."""  
