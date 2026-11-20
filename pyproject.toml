@@ -42,18 +42,6 @@ testpaths = ["tests"]
 pythonpath = ["."]  
 addopts = "-q --strict-markers"  
 
-[tool.poe.tasks]  
-bump = "bump-my-version bump"  
-push = "git push && git push --tags"  
-_github_release = { shell = "for /f \"tokens=*\" %%i in ('git describe --tags --abbrev=0') do set TAG=%%i & gh release create %TAG% --generate-notes" }
-
-[tool.poe.tasks.release]  
-sequence = [  
-    { ref = "bump" },  
-    { ref = "push" },  
-    { ref = "_github_release" }  
-]  
-
 [tool.bumpversion]  
 current_version = "1.2.1"  
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"  
