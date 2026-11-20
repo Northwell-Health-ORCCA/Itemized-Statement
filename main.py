@@ -19,7 +19,7 @@ from db.repository import (
     start_run,
 )
 from IDXClient import IDXClient
-from utils.logging import setup_logging
+from utils.logging import setup_logging, setup_screenshots
 from workflow import process_invoice, reset
 
 
@@ -129,12 +129,14 @@ def main(file_date: str,
         with session_scope() as session:  
             complete_run(session, run_id, failure_reason=fatal) 
             df = run_output_file(session, file_name)
-            # TODO: change output location
-            df.to_excel(f"./UAT/{file_name}_output.xlsx", index=False)
+
+            outputs_dir = '//NT2KWB972SRV03/SHAREDATA/CPP-Data/CBO Westbury Managers/LEADERSHIP/Bot Folder/Part B/Itemized Statements'
+            df.to_excel(f"./{outputs_dir}/Transaction Report - {file_date}.xlsx", index=False)
             
 if __name__ == "__main__":
     load_dotenv()
     
     setup_logging('./logs')
-    today = datetime.today().strftime('%Y%m%d')  # noqa: DTZ002
+    setup_screenshots('./logs/screenshots')
+    today = datetime.today().strftime('%Y%m%d')
     main(today)
