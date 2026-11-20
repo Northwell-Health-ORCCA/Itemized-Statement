@@ -33,8 +33,11 @@ class DeviceSelection:
         if current_value == device_name:
             logger.debug("Device name is already set correctly.")
             return
-        # TODO: clear() method not working, change to ctrl + a
-        device_input_field.clear()  
+        # highlight what is already there and delete
+        device_input_field.send_keys(Keys.CONTROL, "a")
+        device_input_field.send_keys(Keys.DELETE)
+        
+        # write new device name
         device_input_field.send_keys(device_name)
         device_input_field.send_keys(Keys.TAB)  
         logger.debug(f"Device name '{device_name}' entered.")
