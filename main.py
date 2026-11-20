@@ -97,6 +97,11 @@ def main(file_date: str,
                 exception_reason = str(e)[:4000]  
             except ApplicationException as e:  
                 end_time = now()
+                
+                # take a screenshot if running headless
+                if idx_client.headless:
+                    idx_client.driver.save_screenshot(f"./logs/screenshots/{end_time.strftime('%Y%m%d')}/{end_time.strftime('%Y%m%d_%H%M%S')} - {item.invoice_number}.png")
+                
                 status = ItemStatus.FAILED
                 exception_type = ExceptionType.APPLICATION
                 exception_reason = f"{type(e).__name__}: {e}"[:4000]
@@ -104,6 +109,11 @@ def main(file_date: str,
                 reset(idx_client=idx_client)
             except Exception as e:  # noqa: BLE001
                 end_time = now()
+                
+                # take a screenshot if running headless
+                if idx_client.headless:
+                    idx_client.driver.save_screenshot(f"./logs/screenshots/{end_time.strftime('%Y%m%d')}/{end_time.strftime('%Y%m%d_%H%M%S')} - {item.invoice_number}.png")
+                
                 status = ItemStatus.FAILED
                 exception_type = ExceptionType.PYTHON
                 exception_reason = f"{type(e).__name__}: {e}"[:4000]
@@ -122,7 +132,10 @@ def main(file_date: str,
 
     except Exception as e:  
         # error happens outside of individual invoice processing and is likely not linked to a specific invoice
-        fatal = f"{type(e).__name__}: {e}"  
+        fatal = f"{type(e).__name__}: {e}"
+        end_time = now()
+
+        idx_client.driver.save_screenshot(f"./logs/screenshots/{end_time.strftime('%Y%m%d')}/{end_time.strftime('%Y%m%d_%H%M%S')} - fatal error.png")
         raise  
     finally:  
         # Close the run after processing all invoices
