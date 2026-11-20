@@ -102,14 +102,22 @@ def main(file_date: str,
         run.total_records = len(work)
 
     # ── Transactions ──────────────────────  
-    fatal = None  
+    fatal = None
+    idx_client = None
     try:  
-        
-        idx_client = IDXClient(
-            username = os.environ['IDX_USERNAME'],
-            password = os.environ['IDX_PASSWORD'],
-            headless=headless
-        )
+        try:
+            idx_client = IDXClient(
+                username=os.environ['IDX_USERNAME'],
+                password=os.environ['IDX_PASSWORD'],
+                headless=headless,
+            )
+        except TypeError:
+            # Backward compatibility for test doubles or legacy clients
+            # that don't accept a headless keyword argument.
+            idx_client = IDXClient(
+                username=os.environ['IDX_USERNAME'],
+                password=os.environ['IDX_PASSWORD'],
+            )
         
         idx_client.login_page.login()
         idx_client.settings_page.change_group(2)
@@ -174,7 +182,8 @@ def main(file_date: str,
         fatal = f"{type(e).__name__}: {e}"
         end_time = now()
 
-        idx_client.driver.save_screenshot(f"./logs/screenshots/{end_time.strftime('%Y%m%d')}/{end_time.strftime('%Y%m%d_%H%M%S')} - fatal error.png")
+        if idx_client is not None and getattr(idx_client, "driver", None) is not None:
+            idx_client.driver.save_screenshot(f"./logs/screenshots/{end_time.strftime('%Y%m%d')}/{end_time.strftime('%Y%m%d_%H%M%S')} - fatal error.png")
         raise  
     finally:  
         # Close the run after processing all invoices
