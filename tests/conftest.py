@@ -1,5 +1,7 @@
-import csv  
+import csv
+import io
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import pytest  
 from sqlalchemy import create_engine, event, insert  
@@ -58,16 +60,39 @@ def patched_db(monkeypatch, Session):
     return Session
 
 
-@pytest.fixture  
-def make_csv(tmp_path):  
-    def _make(name, rows, *, header=("HCENPTACCT", "ZZACPAANSGROUP"), bom=False):  
-        path = tmp_path / name  
-        with path.open("w", newline="", encoding="utf-8-sig" if bom else "utf-8") as f:  
-            w = csv.writer(f)  
-            if header:  
-                w.writerow(header)  
-            w.writerows(rows)  
-        return path  
+@pytest.fixture
+def make_csv(monkeypatch):
+    """Create CSVs in memory and expose them as pseudo-Path objects.
+
+    The repository reads via Path.open(), so we patch Path.open to return
+    StringIO content for fixture-generated pseudo paths.
+    """
+    registry: dict[str, str] = {}
+    sentinel = "__inmem__"
+    original_open = Path.open
+
+    def _path_open(self: Path, *args, **kwargs):
+        key = str(self)
+        if key in registry:
+            return io.StringIO(registry[key])
+        return original_open(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", _path_open)
+
+    def _make(name, rows, *, header=("HCENPTACCT", "ZZACPAANSGROUP"), bom=False):
+        buffer = io.StringIO()
+        writer = csv.writer(buffer)
+        if header:
+            writer.writerow(header)
+        writer.writerows(rows)
+        csv_text = buffer.getvalue()
+        if bom:
+            csv_text = "\ufeff" + csv_text
+
+        pseudo_path = Path(f"{sentinel}/{name}")
+        registry[str(pseudo_path)] = csv_text
+        return pseudo_path
+
     return _make
 
 
