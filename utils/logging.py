@@ -1,5 +1,15 @@
 from pathlib import Path
 from loguru import logger
+from datetime import datetime
+
+def setup_screenshots(screenshots_folder_path: Path | str) -> None:
+    """Create a directory for storing screenshots."""
+    date = datetime.now().strftime("%Y-%m-%d")
+    
+    if isinstance(screenshots_folder_path, str):
+        screenshots_folder_path = Path(screenshots_folder_path)
+    screenshots_folder_path = screenshots_folder_path / date
+    screenshots_folder_path.mkdir(parents=True, exist_ok=True)
 
 def setup_logging(log_folder_path: Path | str) -> None:
     """Configure loguru logger with file outputs for debug and info levels.
