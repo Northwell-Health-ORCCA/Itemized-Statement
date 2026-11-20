@@ -1,6 +1,10 @@
+[build-system]  
+requires = ["setuptools>=68"]  
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "itemized-statement"
-version = "1.0.0"
+version = "1.2.0"
 description = "Ingests daily input file and prints the itemized statements in IDX."
 readme = "README.md"
 requires-python = ">=3.13"
@@ -26,6 +30,13 @@ dependencies = [
 dev = [
     "ipykernel>=7.4.0",
 ]
+
+[project.scripts]  
+itemized-statements = "main:cli"
+
+[tool.setuptools]  
+packages = ["db", "utils"]  
+py-modules = ["main", "workflow", "IDXClient"]  
 
 [tool.pytest.ini_options]  
 testpaths = ["tests"]  
