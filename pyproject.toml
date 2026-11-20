@@ -21,9 +21,11 @@ dependencies = [
 ]
 
 [dependency-groups]  
-dev = [  
-    "ipykernel>=7.4.0",  
-    "pytest>=9.2.0",  
+dev = [
+    "bump-my-version>=1.8.1",
+    "ipykernel>=7.4.0",
+    "poethepoet>=0.49.0",
+    "pytest>=9.2.0",
 ]
 
 [project.scripts]  
@@ -39,3 +41,45 @@ include = ["db*", "utils*", "pages*"]
 testpaths = ["tests"]  
 pythonpath = ["."]  
 addopts = "-q --strict-markers"  
+
+[tool.poe.tasks]  
+bump = "bump-my-version bump"  
+push = ["_git_push_all", "_github_release"]
+
+# Hidden sub-tasks used by the 'push' sequence  
+[tool.poe.tasks._git_push_all]  
+shell = "git push && git push --tags"
+
+[tool.poe.tasks._github_release]  
+shell = """  
+TAG=$(git describe --tags --abbrev=0)  
+gh release create "$TAG" --generate-notes  
+"""
+  
+# Usage: uv run poe release patch (or minor, major)  
+release = [  
+    { ref = "bump" },  
+    { ref = "push" }  
+] 
+
+[tool.bumpversion]  
+current_version = "1.2.0"  
+parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"  
+serialize = ["{major}.{minor}.{patch}"]  
+search = "{current_version}"  
+replace = "{new_version}"  
+commit = true  
+tag = true  
+tag_name = "v{new_version}"
+
+# Tell it which files to update the version number in:  
+[[tool.bumpversion.file]]  
+filename = "pyproject.toml"  
+search = "version = \"{current_version}\""  
+replace = "version = \"{new_version}\""
+
+# Optional: If you also keep the version in your main package file  
+[[tool.bumpversion.file]]  
+filename = "src/your_package/__init__.py"  
+search = "__version__ = \"{current_version}\""  
+replace = "__version__ = \"{new_version}\""  
