@@ -1,4 +1,5 @@
 from IDXClient import IDXClient
+from typing import Optional
 
 
 def reset(idx_client: IDXClient) -> None:
@@ -9,7 +10,10 @@ def reset(idx_client: IDXClient) -> None:
     idx_client.vtb_page.select_vtb_option("Patient Services")
 
 
-def process_invoice(idx_client: IDXClient,invoice_number: str, group_number: str | None) -> None:  
+def process_invoice(idx_client: IDXClient,
+                    invoice_number: str, 
+                    group_number: Optional[str],
+                    dry_run: Optional[bool] = False) -> None:  
     """Process an invoice using the provided IDXClient instance."""  
     
     if 'P' in invoice_number:
@@ -31,6 +35,6 @@ def process_invoice(idx_client: IDXClient,invoice_number: str, group_number: str
     idx_client.patient_services.select_invoices.search_for_invoice(invoice_number)
     
     # select device and save output if printed to new screen
-    idx_client.patient_services.device_selection.select_device()
+    if not dry_run:
+        idx_client.patient_services.device_selection.select_device()
     idx_client.vtb_page.select_vtb_option("Patient Services")
-    # idx_client.vtb_page._handle_deceased_indicator()
