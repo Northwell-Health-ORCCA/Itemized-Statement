@@ -13,9 +13,16 @@ class DummyIDXClient:
 	def __init__(self, username: str, password: str):
 		self.username = username
 		self.password = password
+		self.headless = False
+		self.driver = SimpleNamespace(save_screenshot=lambda _path: None)
 		self.login_page = SimpleNamespace(login=lambda: None)
 		self.settings_page = SimpleNamespace(change_group=lambda _n: None, logout=lambda: None)
 		self.vtb_page = SimpleNamespace(select_vtb_option=lambda _name: None)
+
+
+class DummyReport:
+	def to_excel(self, *_args, **_kwargs):
+		return None
 
 
 @pytest.mark.parametrize("bad_date", ["", "2026-11-16", "202611", "abcdefgh", "20261301"])
@@ -32,6 +39,7 @@ def test_main_records_success_and_all_failure_types(monkeypatch, patched_db):
 	monkeypatch.setattr(app_main.os.path, "exists", lambda _p: True)
 	monkeypatch.setattr(app_main, "tqdm", lambda items: items)
 	monkeypatch.setattr(app_main, "IDXClient", DummyIDXClient)
+	monkeypatch.setattr(app_main, "run_output_file", lambda *_args, **_kwargs: DummyReport())
 
 	work = [
 		WorkItem("INV_OK", "G1"),
@@ -46,7 +54,7 @@ def test_main_records_success_and_all_failure_types(monkeypatch, patched_db):
 	reset_calls = []
 	monkeypatch.setattr(app_main, "reset", lambda idx_client: reset_calls.append(idx_client))
 
-	def fake_process(_client, invoice_number, _group):
+	def fake_process(_client, invoice_number, _group, _dry_run):
 		if invoice_number == "INV_BIZ":
 			raise BusinessException("business fail")
 		if invoice_number == "INV_APP":
@@ -82,7 +90,7 @@ def test_main_records_success_and_all_failure_types(monkeypatch, patched_db):
 	finally:
 		session.close()
 
-	assert len(reset_calls) == 1
+	assert len(reset_calls) == 2
 
 
 def test_main_marks_run_failed_when_fatal_error_occurs(monkeypatch, patched_db):
@@ -91,6 +99,7 @@ def test_main_marks_run_failed_when_fatal_error_occurs(monkeypatch, patched_db):
 	monkeypatch.setattr(app_main, "load_dotenv", lambda: None)
 	monkeypatch.setattr(app_main.os.path, "exists", lambda _p: True)
 	monkeypatch.setattr(app_main, "tqdm", lambda items: items)
+	monkeypatch.setattr(app_main, "run_output_file", lambda *_args, **_kwargs: DummyReport())
 
 	monkeypatch.setattr(app_main, "register_input_file", lambda *_args, **_kwargs: 1)
 	monkeypatch.setattr(
@@ -101,7 +110,11 @@ def test_main_marks_run_failed_when_fatal_error_occurs(monkeypatch, patched_db):
 
 	class BrokenIDXClient:
 		def __init__(self, *_args, **_kwargs):
-			raise RuntimeError("browser not available")
+			self.headless = False
+			self.driver = SimpleNamespace(save_screenshot=lambda _path: None)
+			self.login_page = SimpleNamespace(login=lambda: (_ for _ in ()).throw(RuntimeError("browser not available")))
+			self.settings_page = SimpleNamespace(change_group=lambda _n: None, logout=lambda: None)
+			self.vtb_page = SimpleNamespace(select_vtb_option=lambda _name: None)
 
 	monkeypatch.setattr(app_main, "IDXClient", BrokenIDXClient)
 
