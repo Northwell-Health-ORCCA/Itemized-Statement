@@ -29,6 +29,7 @@ dev = [
 
 [project.scripts]  
 itemized-statements = "main:cli"
+backup-db = "db.backup:run_backup"  
 
 [tool.setuptools]  
 py-modules = ["main", "workflow", "IDXClient"]
