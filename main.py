@@ -145,9 +145,8 @@ def main(file_date: str,
             except ApplicationException as e:  
                 end_time = now()
                 
-                # take a screenshot if running headless
-                if idx_client.headless:
-                    idx_client.driver.save_screenshot(f"./logs/screenshots/{end_time.strftime('%Y%m%d')}/{end_time.strftime('%Y%m%d_%H%M%S')} - {item.invoice_number}.png")
+                # take a screenshot
+                idx_client.driver.save_screenshot(f"./logs/screenshots/{end_time.strftime('%Y-%m-%d')}/{end_time.strftime('%Y%m%d_%H%M%S')} - {item.invoice_number}.png")
                 
                 status = ItemStatus.FAILED
                 exception_type = ExceptionType.APPLICATION
@@ -157,9 +156,8 @@ def main(file_date: str,
             except Exception as e:  # noqa: BLE001
                 end_time = now()
                 
-                # take a screenshot if running headless
-                if idx_client.headless:
-                    idx_client.driver.save_screenshot(f"./logs/screenshots/{end_time.strftime('%Y%m%d')}/{end_time.strftime('%Y%m%d_%H%M%S')} - {item.invoice_number}.png")
+                # take a screenshot
+                idx_client.driver.save_screenshot(f"./logs/screenshots/{end_time.strftime('%Y-%m-%d')}/{end_time.strftime('%Y%m%d_%H%M%S')} - {item.invoice_number}.png")
                 
                 status = ItemStatus.FAILED
                 exception_type = ExceptionType.PYTHON
@@ -183,7 +181,7 @@ def main(file_date: str,
         end_time = now()
 
         if idx_client is not None and getattr(idx_client, "driver", None) is not None:
-            idx_client.driver.save_screenshot(f"./logs/screenshots/{end_time.strftime('%Y%m%d')}/{end_time.strftime('%Y%m%d_%H%M%S')} - fatal error.png")
+            idx_client.driver.save_screenshot(f"./logs/screenshots/{end_time.strftime('%Y-%m-%d')}/{end_time.strftime('%Y%m%d_%H%M%S')} - fatal error.png")
         raise  
     finally:  
         # Close the run after processing all invoices
@@ -193,6 +191,7 @@ def main(file_date: str,
 
             outputs_dir = '//NT2KWB972SRV03/SHAREDATA/CPP-Data/CBO Westbury Managers/LEADERSHIP/Bot Folder/Part B/Itemized Statements'
             df.to_excel(f"{outputs_dir}/Transaction Report - {file_date}.xlsx", index=False)
+            logger.success('Transaction report saved successfully')
 
         if dry_run:
             configure_database(default_database_url)
@@ -211,12 +210,14 @@ def cli(argv: list[str] | None = None) -> None:
             retry_failed_only=args.retry_failed_only,  
             dry_run=args.dry_run,
             headless=args.headless 
-        )  
+        )
+        logger.success('Run completed successfully')
+        sys.exit(0)
     except BusinessException as e:  
         logger.warning(f"Business exception: {e}")  
         sys.exit(2)  
     except Exception:  
-        logger.exception("Run failed")  
+        logger.critical("Run failed")  
         sys.exit(1)
   
 if __name__ == "__main__":
@@ -231,7 +232,8 @@ if __name__ == "__main__":
             file_date=args.file_date,  
             retry_failed_only=args.retry_failed_only,  
             dry_run=args.dry_run,  
-        )  
+        )
+        logger.success('Run completed successfully')
     except BusinessException as e:  
         logger.warning(f"Business exception: {e}")  
         sys.exit(2)  

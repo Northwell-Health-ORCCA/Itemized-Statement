@@ -9,27 +9,31 @@ set "ATTEMPT=1"
 :: activate the virtual environment
 call "%VENV_PATH%\Scripts\activate.bat"
 
+:: add logging for .bat file
+set LOG_FILE=%FILE_PATH%/logs/run-daily.log
+echo [%DATE% %TIME%] Starting itemized-statements... >> %LOG_FILE%
+
 :TRY_LOOP  
-echo [%DATE% %TIME%] Attempt %ATTEMPT% of %MAX_TRIES%: Running itemized-statements...
+echo [%DATE% %TIME%] Attempt %ATTEMPT% of %MAX_TRIES%: Running itemized-statements... >> %LOG_FILE%
 
 uv run itemized-statements --headless
 
 :: Check if it succeeded (Exit code 0)  
 IF %ERRORLEVEL% EQU 0 (  
-    echo [%DATE% %TIME%] Success, Script completed.  
+    echo [%DATE% %TIME%] Success, Script completed. >> %LOG_FILE%
     goto END  
 )
 
 :: Check if it failed with exit code 1  
 IF %ERRORLEVEL% EQU 1 (  
-    echo [%DATE% %TIME%] Script failed with exit code 1.  
+    echo [%DATE% %TIME%] Script failed with exit code 1.  >> %LOG_FILE%
 ) else (  
-    echo [%DATE% %TIME%] Script failed with unexpected exit code: %ERRORLEVEL%. Treating as retryable...  
+    echo [%DATE% %TIME%] Script failed with unexpected exit code: %ERRORLEVEL%. Treating as retryable... >> %LOG_FILE%
 )
 
 :: Check if we have hit the maximum number of tries  
 IF %ATTEMPT% GEQ %MAX_TRIES% (  
-    echo [%DATE% %TIME%] Reached maximum attempts (%MAX_TRIES%). Giving up.  
+    echo [%DATE% %TIME%] Reached maximum attempts (%MAX_TRIES%). Giving up. >> %LOG_FILE%
     goto END  
 )
 
